@@ -19,14 +19,21 @@ jobs:
       run:
         working-directory: plugins/codex-deepseek-bridge
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: plugins/codex-deepseek-bridge/package-lock.json
       - run: npm ci
-      - run: npm run verify
+      - name: Check source syntax
+        run: npm run check
+      - name: Run offline tests
+        run: npm test
+      - name: Build distributable MCP server
+        run: npm run build
+      - name: Validate plugin manifests and repository hygiene
+        run: npm run validate
       - run: npm audit --omit=dev --audit-level=high
       - name: Check committed bundle is current
         run: git diff --exit-code -- dist/index.mjs

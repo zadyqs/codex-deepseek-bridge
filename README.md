@@ -3,9 +3,17 @@
 [![CI](https://github.com/zadyqs/codex-deepseek-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/zadyqs/codex-deepseek-bridge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Let an OpenAI parent task in Codex visibly delegate independent engineering work to DeepSeek V4.1 Flash or another configured provider profile. The bridge is a removable local Codex plugin containing one MCP tool and one routing Skill.
+## 中文介绍
 
-It does not replace Codex, patch the desktop application, alter its database, proxy OpenAI traffic, or store API keys. It launches normal `codex exec --profile <name>` workers and reports runtime evidence from each child rollout.
+Codex DeepSeek Bridge 是可移除的本地插件：由 OpenAI 顶层模型统筹，将独立任务并行交给 DeepSeek V4.1 Flash 或其他已配置模型。它为 Codex Desktop 尚无第三方 provider 选择器的问题而生，以更低成本提供可见、可验证的跨模型协作。支持 1-8 个任务/4 路并发、逐任务 profile 与推理强度、沙箱/超时/取消/密钥保护和运行时校验；适用于 DeepSeek、OpenRouter 及其他 Responses 兼容的 Codex profile，不修改 Codex、数据库或 OpenAI 流量。当前仅受限于第三方模型无法安全显示在原生下拉框；这是 OpenAI Codex 的上游 UI 缺口，见官方仓库 [#29156](https://github.com/openai/codex/issues/29156) 和 [#45839](https://github.com/openai/codex/issues/45839)，不是桥接调用失败。
+
+**强模型指挥，性价比模型并行；调用可见，结果可证。**
+
+## English
+
+Codex DeepSeek Bridge lets an OpenAI parent orchestrate parallel DeepSeek V4.1 Flash or custom-provider workers. It fills Codex Desktop's provider-picker gap with lower-cost, verifiable delegation: 1-8 tasks, four-way concurrency, per-task profiles/reasoning, sandboxing, cancellation, secret safeguards, and attestation. It supports DeepSeek, OpenRouter, and other Responses-compatible profiles without patching Codex. The missing native dropdown is upstream, not a bridge failure: [#29156](https://github.com/openai/codex/issues/29156), [#45839](https://github.com/openai/codex/issues/45839).
+
+**Lead with strength. Scale with value. Verify every result.**
 
 ## What works
 
@@ -21,7 +29,7 @@ In Codex, the parent task shows a visible `codex_provider_workers.run_parallel` 
 
 ## Current UI limitation
 
-The bridge does not add DeepSeek to the model picker at the bottom of the Codex composer. Codex Desktop does not yet provide a safe provider-aware picker that can mix built-in OpenAI models and custom provider models. The upstream gap is tracked in [openai/codex#29156](https://github.com/openai/codex/issues/29156), [openai/codex#35487](https://github.com/openai/codex/issues/35487), and [openai/codex#45839](https://github.com/openai/codex/issues/45839).
+The bridge does not add DeepSeek to the model picker at the bottom of the Codex composer. Codex Desktop does not yet provide a safe provider-aware picker that can mix built-in OpenAI models and custom provider models. OpenAI's official Codex repository tracks the missing provider-aware Desktop picker in [#29156](https://github.com/openai/codex/issues/29156), the risk of a picker retaining the wrong provider/model pair in [#35487](https://github.com/openai/codex/issues/35487), and the broader provider-management request in [#45839](https://github.com/openai/codex/issues/45839).
 
 This project deliberately avoids database edits, traffic interception, fake authentication, and catalog replacement. Those approaches can break provider/model pairing or hide normal models and chats. The bridge is designed to be removed when Codex gains native provider-aware selection.
 
