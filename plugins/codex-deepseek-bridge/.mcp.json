@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "codex_provider_workers": {
+      "command": "node",
+      "cwd": ".",
+      "args": [
+        "./dist/index.mjs"
+      ],
+      "env_vars": [
+        "DEEPSEEK_API_KEY",
+        "OPENROUTER_API_KEY"
+      ],
+      "default_tools_approval_mode": "approve",
+      "startup_timeout_sec": 20,
+      "tool_timeout_sec": 1200
+    }
+  }
+}

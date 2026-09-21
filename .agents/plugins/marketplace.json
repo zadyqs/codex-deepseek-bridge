@@ -1,0 +1,20 @@
+{
+  "name": "codex-deepseek-bridge",
+  "interface": {
+    "displayName": "Codex DeepSeek Bridge"
+  },
+  "plugins": [
+    {
+      "name": "codex-deepseek-bridge",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-deepseek-bridge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

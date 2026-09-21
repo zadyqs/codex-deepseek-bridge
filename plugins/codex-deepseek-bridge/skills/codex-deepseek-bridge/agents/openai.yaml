@@ -1,0 +1,12 @@
+interface:
+  display_name: "Codex DeepSeek Bridge"
+  short_description: "Run visible parallel workers through provider profiles."
+  default_prompt: "Use $codex-deepseek-bridge to delegate independent tasks in parallel and show runtime model evidence."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "codex_provider_workers"
+      description: "Runs isolated Codex workers through configured provider profiles."
+      transport: "stdio"
+policy:
+  allow_implicit_invocation: true

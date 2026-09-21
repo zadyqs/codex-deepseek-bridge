@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a reproducible bridge failure without sharing credentials.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never paste API keys, full rollout files, or private workspace contents.
+  - type: input
+    id: codex-version
+    attributes:
+      label: Codex CLI version
+      placeholder: codex-cli 0.x.y
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and Node.js version
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted evidence
+      description: Include task IDs, attested provider/model, exit codes, and sanitized errors only.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, personal paths, and private code/data.
+          required: true

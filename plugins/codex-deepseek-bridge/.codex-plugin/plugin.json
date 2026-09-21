@@ -1,0 +1,39 @@
+{
+  "name": "codex-deepseek-bridge",
+  "version": "0.1.0",
+  "description": "Delegate parallel Codex tasks to DeepSeek or another configured provider profile.",
+  "author": {
+    "name": "zadyqs",
+    "url": "https://github.com/zadyqs"
+  },
+  "homepage": "https://github.com/zadyqs/codex-deepseek-bridge",
+  "repository": "https://github.com/zadyqs/codex-deepseek-bridge",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "deepseek",
+    "mcp",
+    "agents",
+    "parallel"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex DeepSeek Bridge",
+    "shortDescription": "Run visible parallel DeepSeek workers from Codex.",
+    "longDescription": "Lets an OpenAI parent task visibly delegate bounded parallel work to DeepSeek or another configured Codex provider profile, with runtime model attestation.",
+    "developerName": "zadyqs",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Parallel delegation",
+      "Provider profiles",
+      "Runtime attestation"
+    ],
+    "websiteURL": "https://github.com/zadyqs/codex-deepseek-bridge",
+    "defaultPrompt": [
+      "Delegate two independent coding tasks to DeepSeek in parallel.",
+      "Use DeepSeek workers and show the runtime model evidence.",
+      "Run parallel workers with my configured provider profile."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

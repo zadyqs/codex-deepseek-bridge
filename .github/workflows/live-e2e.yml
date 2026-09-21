@@ -1,0 +1,51 @@
+name: Live DeepSeek E2E
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deepseek:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      CODEX_HOME: ${{ runner.temp }}\codex-home
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: plugins/codex-deepseek-bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: plugins/codex-deepseek-bridge/package-lock.json
+      - name: Require maintainer API secret
+        run: |
+          if (-not $env:DEEPSEEK_API_KEY) {
+            throw "Configure the DEEPSEEK_API_KEY repository secret before running this paid test."
+          }
+      - run: npm ci
+      - run: npm install --global @openai/codex@latest
+      - name: Create isolated Codex provider profile
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:CODEX_HOME | Out-Null
+          @'
+          [model_providers.deepseek]
+          name = "DeepSeek"
+          base_url = "https://api.deepseek.com/"
+          env_key = "DEEPSEEK_API_KEY"
+          wire_api = "responses"
+          '@ | Set-Content -LiteralPath (Join-Path $env:CODEX_HOME "config.toml") -Encoding utf8
+          @'
+          model = "deepseek-flash"
+          model_provider = "deepseek"
+          model_reasoning_effort = "max"
+          web_search = "disabled"
+          '@ | Set-Content -LiteralPath (Join-Path $env:CODEX_HOME "deepseek.config.toml") -Encoding utf8
+      - run: npm run verify
+      - run: npm run test:e2e
