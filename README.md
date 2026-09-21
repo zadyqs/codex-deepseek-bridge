@@ -5,17 +5,89 @@
 
 [![Verified live delegation: OpenAI parent to two parallel DeepSeek V4.1 Flash workers](assets/verified-parallel-delegation.svg)](docs/VERIFIED_LIVE_PROOF.md)
 
+> [!IMPORTANT]
+> **OpenAI 官方 Codex 仓库中的上游问题（不是本项目代码故障） / Upstream issues in OpenAI's official Codex repository**
+>
+> - [OpenAI Codex 官方仓库 #29156](https://github.com/openai/codex/issues/29156)：Codex Desktop 尚无安全、完整的第三方 provider 模型选择器；
+> - [OpenAI Codex 官方仓库 #35487](https://github.com/openai/codex/issues/35487)：模型菜单可能把 OpenAI 模型错误写入第三方 provider profile；
+> - [OpenAI Codex 官方仓库 #45839](https://github.com/openai/codex/issues/45839)：社区请求官方提供 provider 管理、GUI 选择与故障切换能力。
+>
+> 因此，DeepSeek 不出现在 Codex 原生模型下拉菜单，是 **OpenAI Codex 当前的上游产品限制**，不是 Codex DeepSeek Bridge 安装失败。这个项目采用独立、可验证、可卸载的并行调度方案，避免修改数据库、伪造认证或替换官方模型目录。
+>
+> 注：这些 issue 位于 OpenAI 官方仓库，其中可包含社区提交的问题报告或功能请求；它们证明问题已经在上游公开记录，但不代表 OpenAI 已承诺具体修复时间。
+
 ## 中文介绍
 
-Codex DeepSeek Bridge 是可移除的本地插件。它的真正作用不是把 DeepSeek 塞进 Codex 原生模型下拉框，而是让 OpenAI 顶层模型担任总指挥，把独立开发任务并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再收回结果做整合与复核。它支持 1-8 个任务、最多 4 路并发、逐任务 profile/推理强度、沙箱、超时、取消、密钥保护与运行时验真；适用于 DeepSeek、OpenRouter 及其他 Responses 兼容的 Codex profile，不修改 Codex、数据库或 OpenAI 流量。第三方模型不显示在原生下拉框是 OpenAI Codex 的上游 UI 缺口，见官方仓库 [#29156](https://github.com/openai/codex/issues/29156) 和 [#45839](https://github.com/openai/codex/issues/45839)，不是桥接调用失败。
+**让顶层模型负责判断，让高性价比模型并行干活。**
 
-**强模型指挥，性价比模型并行；调用可见，结果可证。**
+Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层模型担任“总指挥”，把边界清楚、可以独立完成的开发任务，并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再由顶层模型收回结果、整合代码和最终复核。
+
+它不是把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型仍不会出现在原生下拉菜单中；桥接通过可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，证明任务确实由指定模型完成。这个 UI 限制是 OpenAI Codex 的上游缺口，见 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
+
+**一次规划，多路执行；强模型把关，低成本扩编；调用可见，结果可证。**
 
 ## English
 
-Codex DeepSeek Bridge does not put DeepSeek in Codex's native model picker. Its real job is to let a strong OpenAI parent lead while parallel DeepSeek V4.1 Flash or custom-provider “mercenary models” handle bounded engineering work at lower cost. It provides 1-8 tasks, four-way concurrency, per-task profiles/reasoning, sandboxing, cancellation, secret safeguards, and runtime attestation without patching Codex. The missing native dropdown is upstream, not a bridge failure: [#29156](https://github.com/openai/codex/issues/29156), [#45839](https://github.com/openai/codex/issues/45839).
+**Let the strongest model decide. Let cost-effective models execute in parallel.**
 
-**Lead with strength. Scale with value. Verify every result.**
+Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent into the lead engineer: it decomposes bounded work, dispatches independent tasks to DeepSeek V4.1 Flash or other configured “mercenary models,” then integrates and reviews their output. It does not impersonate OpenAI models or patch Codex. The native picker remains unchanged; visible MCP calls, real overlap, and per-worker runtime attestation prove what actually ran. The missing provider-aware picker is tracked upstream in [#29156](https://github.com/openai/codex/issues/29156), [#35487](https://github.com/openai/codex/issues/35487), and [#45839](https://github.com/openai/codex/issues/45839).
+
+**Plan once. Execute in parallel. Scale with value. Verify every result.**
+
+## 它到底是什么？ / What exactly is it?
+
+它不只是一个孤立的 MCP 配置，而是一套完整的 **Codex 插件**：
+
+| 组成 | 作用 |
+| --- | --- |
+| Codex Plugin | 提供可安装、可升级、可卸载的产品外壳 |
+| Local MCP Server | 暴露 `codex_provider_workers.run_parallel`，创建并控制并行 worker |
+| Routing Skill | 告诉顶层模型何时拆任务、如何限制并发、如何回收结果 |
+| Runtime Attestation | 从每个子任务的实际运行记录核验 provider、模型、推理强度和 CLI 版本 |
+| Tests and Docs | 提供离线测试、真实 API 验收、回滚、故障排查和发布规范 |
+
+所以最准确的说法是：**它是一个由本地 MCP bridge 驱动的 Codex 多模型并行插件。**
+
+## 工作方式 / How it works
+
+```text
+OpenAI 顶层模型（规划、拆分、最终 Review）
+                    │
+                    ▼
+     Codex DeepSeek Bridge / run_parallel
+          ┌─────────┼─────────┐
+          ▼         ▼         ▼
+     DeepSeek A  DeepSeek B  其他 profile
+       编码         测试        文档/分析
+          └─────────┼─────────┘
+                    ▼
+       运行时验真 → 结果回收 → 顶层模型整合
+```
+
+顶层模型始终保留架构决策、冲突处理和最终质量责任；worker 只处理明确、独立、受沙箱与超时约束的任务。这样既保留高能力模型的判断力，也能用更低成本扩大并行吞吐。
+
+## 为什么值得用？ / Why it matters
+
+- **成本分层：** 不必让昂贵的顶层模型亲自完成每一项机械工作。
+- **真正并行：** 不是轮流模拟；返回峰值并发和任务重叠时间。
+- **结果可证：** 不相信 profile 名称，直接核验运行时 provider、模型与推理强度。
+- **失败关闭：** 实际模型不匹配时明确失败，不静默降级或偷换模型。
+- **安全可逆：** 不接管 OpenAI 流量、不改数据库、不保存 API Key，随时可卸载。
+- **不锁死 DeepSeek：** 每个任务可以指定不同 profile，为混合模型编队预留空间。
+
+适合希望“强模型做架构和验收、性价比模型做批量实现”的个人开发者、小团队、长上下文代码库和批量工程任务。
+
+## 能连接哪些模型？ / Provider compatibility
+
+| 状态 | Provider / model | 说明 |
+| --- | --- | --- |
+| ✅ 已真实验证 | DeepSeek direct / `deepseek-flash` | DeepSeek V4.1 Flash；双 worker 端到端并行验收已通过 |
+| 🟡 已预留接入 | OpenRouter profiles | 安装包已转发 `OPENROUTER_API_KEY`；具体模型必须逐个实测并验真 |
+| 🟡 架构兼容 | 其他 Codex custom profiles | 需要可用的 Codex profile、Responses 兼容运行方式及对应密钥变量 |
+| ✅ 支持编队 | 同批混合 profiles | 每个任务可覆盖 profile 和推理强度；每个 provider 都应单独设置预期值 |
+| ❌ 不宣称 | “所有模型天然可用” | 配置存在不等于可用；只有真实调用和 attestation 通过才算支持 |
+
+项目名称突出 DeepSeek，是因为它是当前的参考配置和已验证主力；执行核心本身是 provider-neutral。接入新 provider 时，只增加它所需的明确环境变量，不把密钥写入仓库，并先做最小真实调用。
 
 ## What works
 
@@ -115,11 +187,24 @@ npm run test:e2e
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
-## Other providers
+## Adding another provider
 
-The execution core is provider-neutral. Any provider/model that works through a Codex profile and its Responses-compatible runtime can use the bridge. The same Codex Desktop picker limitation generally applies to other custom providers.
+Create a separate Codex profile containing the exact provider/model pair, validate that profile directly, then pass its profile name to `run_parallel`. The same Codex Desktop picker limitation generally applies to other custom providers.
 
-The packaged MCP manifest forwards only `DEEPSEEK_API_KEY` and `OPENROUTER_API_KEY`. For a direct provider using another variable, fork or edit `.mcp.json` to add only that specific name, rebuild, and reinstall. Compatibility must be verified with that provider; DeepSeek is the reference configuration tested by this project.
+The packaged MCP manifest forwards only `DEEPSEEK_API_KEY` and `OPENROUTER_API_KEY`. If a provider uses a different credential variable, add only that variable name to `.mcp.json`, rebuild, and reinstall. Never claim compatibility from configuration alone: set `expected_provider`, `expected_model`, and `expected_reasoning_effort`, then require a successful live attestation.
+
+## 让更多开发者看到 / Help the project grow
+
+如果这个项目帮你把“高能力总指挥 + 高性价比并行 worker”真正跑通：
+
+- 给仓库一个 Star，让更多遇到相同 Codex provider 限制的人更容易找到它；
+- 分享真实的 provider、模型和验真结果，但不要公开 API Key 或原始 rollout；
+- 通过 Issues 提交可复现的问题、provider 兼容报告或改进建议；
+- 欢迎贡献新的 provider 配置示例、测试与文档，所有“支持”声明都必须有真实调用证据。
+
+**把昂贵推理留给关键判断，把批量执行交给可验证的高性价比模型。**
+
+If the bridge helps, star the repository, share sanitized attestation evidence, and contribute reproducible provider reports. Every compatibility claim should be backed by a real call—not a configuration screenshot.
 
 ## Removal
 

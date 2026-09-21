@@ -1,7 +1,7 @@
 {
   "name": "codex-deepseek-bridge",
   "version": "0.1.0",
-  "description": "MCP bridge for visible parallel Codex provider workers",
+  "description": "Codex plugin and MCP bridge for verified parallel provider workers",
   "private": true,
   "type": "module",
   "scripts": {
