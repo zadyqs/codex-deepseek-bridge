@@ -11,7 +11,6 @@ test("MCP server starts and publishes the parallel worker tool", async () => {
     command: process.execPath,
     args: [path.join(pluginRoot, "mcp", "server.mjs")],
     cwd: pluginRoot,
-    env: {},
   });
   const client = new Client({ name: "offline-smoke", version: "0.1.0" });
   try {

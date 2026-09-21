@@ -7,7 +7,9 @@
   "scripts": {
     "build": "ncc build mcp/server.mjs -o dist -m",
     "check": "node --check mcp/core.mjs && node --check mcp/server.mjs",
-    "test": "node --test test/*.test.mjs",
+    "test": "npm run test:core && npm run test:server",
+    "test:core": "node --test test/core.test.mjs",
+    "test:server": "node --test test/server.test.mjs",
     "validate": "node scripts/validate.mjs",
     "verify": "npm run check && npm test && npm run build && npm run validate",
     "test:e2e": "node test/e2e.mjs"
