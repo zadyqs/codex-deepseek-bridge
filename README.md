@@ -3,15 +3,17 @@
 [![CI](https://github.com/zadyqs/codex-deepseek-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/zadyqs/codex-deepseek-bridge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[![Verified live delegation: OpenAI parent to two parallel DeepSeek V4.1 Flash workers](assets/verified-parallel-delegation.svg)](docs/VERIFIED_LIVE_PROOF.md)
+
 ## 中文介绍
 
-Codex DeepSeek Bridge 是可移除的本地插件：由 OpenAI 顶层模型统筹，将独立任务并行交给 DeepSeek V4.1 Flash 或其他已配置模型。它为 Codex Desktop 尚无第三方 provider 选择器的问题而生，以更低成本提供可见、可验证的跨模型协作。支持 1-8 个任务/4 路并发、逐任务 profile 与推理强度、沙箱/超时/取消/密钥保护和运行时校验；适用于 DeepSeek、OpenRouter 及其他 Responses 兼容的 Codex profile，不修改 Codex、数据库或 OpenAI 流量。当前仅受限于第三方模型无法安全显示在原生下拉框；这是 OpenAI Codex 的上游 UI 缺口，见官方仓库 [#29156](https://github.com/openai/codex/issues/29156) 和 [#45839](https://github.com/openai/codex/issues/45839)，不是桥接调用失败。
+Codex DeepSeek Bridge 是可移除的本地插件。它的真正作用不是把 DeepSeek 塞进 Codex 原生模型下拉框，而是让 OpenAI 顶层模型担任总指挥，把独立开发任务并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再收回结果做整合与复核。它支持 1-8 个任务、最多 4 路并发、逐任务 profile/推理强度、沙箱、超时、取消、密钥保护与运行时验真；适用于 DeepSeek、OpenRouter 及其他 Responses 兼容的 Codex profile，不修改 Codex、数据库或 OpenAI 流量。第三方模型不显示在原生下拉框是 OpenAI Codex 的上游 UI 缺口，见官方仓库 [#29156](https://github.com/openai/codex/issues/29156) 和 [#45839](https://github.com/openai/codex/issues/45839)，不是桥接调用失败。
 
 **强模型指挥，性价比模型并行；调用可见，结果可证。**
 
 ## English
 
-Codex DeepSeek Bridge lets an OpenAI parent orchestrate parallel DeepSeek V4.1 Flash or custom-provider workers. It fills Codex Desktop's provider-picker gap with lower-cost, verifiable delegation: 1-8 tasks, four-way concurrency, per-task profiles/reasoning, sandboxing, cancellation, secret safeguards, and attestation. It supports DeepSeek, OpenRouter, and other Responses-compatible profiles without patching Codex. The missing native dropdown is upstream, not a bridge failure: [#29156](https://github.com/openai/codex/issues/29156), [#45839](https://github.com/openai/codex/issues/45839).
+Codex DeepSeek Bridge does not put DeepSeek in Codex's native model picker. Its real job is to let a strong OpenAI parent lead while parallel DeepSeek V4.1 Flash or custom-provider “mercenary models” handle bounded engineering work at lower cost. It provides 1-8 tasks, four-way concurrency, per-task profiles/reasoning, sandboxing, cancellation, secret safeguards, and runtime attestation without patching Codex. The missing native dropdown is upstream, not a bridge failure: [#29156](https://github.com/openai/codex/issues/29156), [#45839](https://github.com/openai/codex/issues/45839).
 
 **Lead with strength. Scale with value. Verify every result.**
 
@@ -32,6 +34,17 @@ In Codex, the parent task shows a visible `codex_provider_workers.run_parallel` 
 The bridge does not add DeepSeek to the model picker at the bottom of the Codex composer. Codex Desktop does not yet provide a safe provider-aware picker that can mix built-in OpenAI models and custom provider models. OpenAI's official Codex repository tracks the missing provider-aware Desktop picker in [#29156](https://github.com/openai/codex/issues/29156), the risk of a picker retaining the wrong provider/model pair in [#35487](https://github.com/openai/codex/issues/35487), and the broader provider-management request in [#45839](https://github.com/openai/codex/issues/45839).
 
 This project deliberately avoids database edits, traffic interception, fake authentication, and catalog replacement. Those approaches can break provider/model pairing or hide normal models and chats. The bridge is designed to be removed when Codex gains native provider-aware selection.
+
+## 看不到下拉菜单，怎么证明它真的工作？ / Proof without the picker
+
+不要相信配置文件里写了什么，也不要把模型名称出现在界面上当成证明。一次有效验收必须同时看到：
+
+1. 顶层 Codex 任务中出现可见的 `codex_provider_workers.run_parallel` 调用；
+2. `peakConcurrency` 大于 1 且 `overlapMs` 大于 0，证明 worker 的确并行；
+3. 每个结果的 `attestation.verified` 为 `true`，并由运行时报告 `provider=deepseek`、`model=deepseek-flash`、`reasoningEffort=max`；
+4. `expectationsMet=true`；provider、模型或推理强度只要有一项不符，桥接就失败关闭，而不是悄悄换模型。
+
+The native picker is not the proof. The visible MCP call, real overlap, per-worker runtime attestation, and fail-closed expectations are the proof. See the [sanitized live acceptance record](docs/VERIFIED_LIVE_PROOF.md), including the exact results, independent child task IDs, reproduction prompt, and evidence boundaries.
 
 ## Requirements
 

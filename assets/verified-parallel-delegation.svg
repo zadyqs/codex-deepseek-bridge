@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img" aria-labelledby="title desc">
+  <title id="title">Verified parallel delegation from an OpenAI parent to two DeepSeek V4.1 Flash workers</title>
+  <desc id="desc">Live acceptance on 2026-09-21: two of two workers succeeded, peak concurrency two, overlap 16082 milliseconds, runtime provider DeepSeek, model deepseek-flash, maximum reasoning, and expectations met.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#102846"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#32d583"/>
+      <stop offset="1" stop-color="#4cc9f0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="640" rx="28" fill="url(#bg)"/>
+  <rect x="34" y="34" width="1132" height="572" rx="22" fill="#0b1b2e" stroke="#264763" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="70" y="72" width="234" height="38" rx="19" fill="#123c31" stroke="#32d583"/>
+  <circle cx="94" cy="91" r="8" fill="#32d583"/>
+  <text x="112" y="98" fill="#b8f7d5" font-family="Segoe UI,Arial,sans-serif" font-size="20" font-weight="700">LIVE ATTESTATION</text>
+  <text x="70" y="158" fill="#f4f8fb" font-family="Segoe UI,Arial,sans-serif" font-size="42" font-weight="750">OpenAI leads. DeepSeek workers execute.</text>
+  <text x="70" y="196" fill="#a9bfd2" font-family="Segoe UI,Arial,sans-serif" font-size="21">Verified parallel delegation · 2026-09-21 · No API keys or private paths shown</text>
+
+  <rect x="70" y="238" width="310" height="136" rx="18" fill="#112b45" stroke="#3f6e91"/>
+  <text x="96" y="273" fill="#8fb8d5" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="650">PARENT CONTROLLER</text>
+  <text x="96" y="316" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="29" font-weight="700">gpt-5.6-sol</text>
+  <text x="96" y="348" fill="#c9d9e5" font-family="Segoe UI,Arial,sans-serif" font-size="20">reasoning: xhigh</text>
+
+  <path d="M380 306 H462" stroke="url(#accent)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M449 294 L466 306 L449 318" fill="none" stroke="#4cc9f0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="466" y="226" width="300" height="160" rx="18" fill="#132338" stroke="#4cc9f0" stroke-width="2"/>
+  <text x="492" y="263" fill="#83dff5" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="650">VISIBLE BRIDGE CALL</text>
+  <text x="492" y="300" fill="#fff" font-family="Consolas,monospace" font-size="19">run_parallel</text>
+  <text x="492" y="334" fill="#c9d9e5" font-family="Segoe UI,Arial,sans-serif" font-size="18">peakConcurrency = 2</text>
+  <text x="492" y="362" fill="#c9d9e5" font-family="Segoe UI,Arial,sans-serif" font-size="18">overlapMs = 16082</text>
+
+  <path d="M766 306 H824" stroke="url(#accent)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M811 294 L828 306 L811 318" fill="none" stroke="#32d583" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="830" y="224" width="300" height="76" rx="16" fill="#103227" stroke="#32d583"/>
+  <text x="854" y="254" fill="#a9f3ce" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="650">DEEPSEEK WORKER A · VERIFIED</text>
+  <text x="854" y="282" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="18">deepseek-flash · max · OK</text>
+  <rect x="830" y="312" width="300" height="76" rx="16" fill="#103227" stroke="#32d583"/>
+  <text x="854" y="342" fill="#a9f3ce" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="650">DEEPSEEK WORKER B · VERIFIED</text>
+  <text x="854" y="370" fill="#fff" font-family="Segoe UI,Arial,sans-serif" font-size="18">deepseek-flash · max · OK</text>
+
+  <rect x="70" y="430" width="1060" height="112" rx="18" fill="#091726" stroke="#27435b"/>
+  <text x="96" y="468" fill="#32d583" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="750">2/2 succeeded · 0 failed · both expectationsMet=true</text>
+  <text x="96" y="505" fill="#c8d7e3" font-family="Segoe UI,Arial,sans-serif" font-size="20">Runtime evidence: provider=deepseek · model=deepseek-flash · reasoning=max</text>
+  <text x="96" y="530" fill="#7f9ab0" font-family="Segoe UI,Arial,sans-serif" font-size="15">Evidence card generated from the live fail-closed acceptance record — not a simulated Codex screenshot.</text>
+
+  <text x="70" y="580" fill="#7f9ab0" font-family="Segoe UI,Arial,sans-serif" font-size="16">Codex DeepSeek Bridge · strong parent, cost-effective parallel workers, verifiable results</text>
+</svg>
