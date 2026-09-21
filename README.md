@@ -12,7 +12,7 @@
 > - [OpenAI Codex 官方仓库 #35487](https://github.com/openai/codex/issues/35487)：模型菜单可能把 OpenAI 模型错误写入第三方 provider profile；
 > - [OpenAI Codex 官方仓库 #45839](https://github.com/openai/codex/issues/45839)：社区请求官方提供 provider 管理、GUI 选择与故障切换能力。
 >
-> 在 Codex 原生 provider 体验逐步完善期间，本项目提供一条独立、可验证、可卸载的并行调度路径，并避免修改数据库、伪造认证或替换官方模型目录。未来官方方案成熟后，也可以平滑回归原生能力。
+> 本项目围绕这些公开讨论，提供一条可实践、可验证、可卸载的多 provider 并行路径，帮助探索 Codex 的跨模型协作体验。随着原生能力逐步完善，也可以平滑回归官方方案。
 >
 > 注：这些 issue 位于 OpenAI 官方仓库，其中可包含社区提交的问题报告或功能请求；它们证明问题已经在上游公开记录，但不代表 OpenAI 已承诺具体修复时间。
 
@@ -22,7 +22,7 @@
 
 Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层模型担任“总指挥”，把边界清楚、可以独立完成的开发任务，并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再由顶层模型收回结果、整合代码和最终复核。
 
-它不是把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型目前仍不会出现在原生下拉菜单中；桥接通过可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，证明任务确实由指定模型完成。相关原生体验正在持续完善，官方追踪见 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
+它不把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型目前仍通过独立 profile 与桥接调用协作；可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，会记录任务实际由哪个模型完成。相关体验与讨论见 Codex 官方仓库 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
 
 **一次规划，多路执行；强模型把关，低成本扩编；调用可见，结果可证。**
 
@@ -30,7 +30,7 @@ Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层�
 
 **Let the strongest model decide. Let cost-effective models execute in parallel.**
 
-Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent into the lead engineer: it decomposes bounded work, dispatches independent tasks to DeepSeek V4.1 Flash or other configured “mercenary models,” then integrates and reviews their output. It does not impersonate OpenAI models or patch Codex. The native picker remains unchanged; visible MCP calls, real overlap, and per-worker runtime attestation prove what actually ran. The missing provider-aware picker is tracked upstream in [#29156](https://github.com/openai/codex/issues/29156), [#35487](https://github.com/openai/codex/issues/35487), and [#45839](https://github.com/openai/codex/issues/45839).
+Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent into the lead engineer: it decomposes bounded work, dispatches independent tasks to DeepSeek V4.1 Flash or other configured “mercenary models,” then integrates and reviews their output. It works alongside Codex through visible MCP calls, real overlap, and per-worker runtime attestation. Related custom-provider workflows are being discussed in the official Codex repository: [#29156](https://github.com/openai/codex/issues/29156), [#35487](https://github.com/openai/codex/issues/35487), and [#45839](https://github.com/openai/codex/issues/45839).
 
 **Plan once. Execute in parallel. Scale with value. Verify every result.**
 
@@ -101,11 +101,11 @@ OpenAI 顶层模型（规划、拆分、最终 Review）
 
 In Codex, the parent task shows a visible `codex_provider_workers.run_parallel` tool call. That tool call is the auditable delegation record.
 
-## Native UI status
+## 与 Codex 原生体验协作 / Working alongside native Codex
 
-The bridge does not add DeepSeek to the model picker at the bottom of the Codex composer. Codex Desktop does not yet provide a safe provider-aware picker that can mix built-in OpenAI models and custom provider models. OpenAI's official Codex repository tracks the missing provider-aware Desktop picker in [#29156](https://github.com/openai/codex/issues/29156), the risk of a picker retaining the wrong provider/model pair in [#35487](https://github.com/openai/codex/issues/35487), and the broader provider-management request in [#45839](https://github.com/openai/codex/issues/45839).
+The bridge keeps external-provider workers in explicit Codex profiles and routes them through visible MCP calls instead of changing the native picker. OpenAI's official Codex repository contains active discussions about provider-aware Desktop selection in [#29156](https://github.com/openai/codex/issues/29156), provider/model pairing in [#35487](https://github.com/openai/codex/issues/35487), and broader provider management in [#45839](https://github.com/openai/codex/issues/45839).
 
-This project deliberately avoids database edits, traffic interception, fake authentication, and catalog replacement. Those approaches can break provider/model pairing or hide normal models and chats. The bridge is designed to be removed when Codex gains native provider-aware selection.
+This project complements that work with an immediately usable, reversible path. It avoids database edits, traffic interception, fake authentication, and catalog replacement, and can be removed cleanly as native provider support expands.
 
 ## 看不到下拉菜单，怎么证明它真的工作？ / Proof without the picker
 
