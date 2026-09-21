@@ -5,14 +5,14 @@
 
 [![Verified live delegation: OpenAI parent to two parallel DeepSeek V4.1 Flash workers](assets/verified-parallel-delegation.svg)](docs/VERIFIED_LIVE_PROOF.md)
 
-> [!IMPORTANT]
-> **OpenAI 官方 Codex 仓库中的上游问题（不是本项目代码故障） / Upstream issues in OpenAI's official Codex repository**
+> [!NOTE]
+> **Codex 自定义 Provider 的官方追踪 / Official tracking for Codex custom providers**
 >
 > - [OpenAI Codex 官方仓库 #29156](https://github.com/openai/codex/issues/29156)：Codex Desktop 尚无安全、完整的第三方 provider 模型选择器；
 > - [OpenAI Codex 官方仓库 #35487](https://github.com/openai/codex/issues/35487)：模型菜单可能把 OpenAI 模型错误写入第三方 provider profile；
 > - [OpenAI Codex 官方仓库 #45839](https://github.com/openai/codex/issues/45839)：社区请求官方提供 provider 管理、GUI 选择与故障切换能力。
 >
-> 因此，DeepSeek 不出现在 Codex 原生模型下拉菜单，是 **OpenAI Codex 当前的上游产品限制**，不是 Codex DeepSeek Bridge 安装失败。这个项目采用独立、可验证、可卸载的并行调度方案，避免修改数据库、伪造认证或替换官方模型目录。
+> 在 Codex 原生 provider 体验逐步完善期间，本项目提供一条独立、可验证、可卸载的并行调度路径，并避免修改数据库、伪造认证或替换官方模型目录。未来官方方案成熟后，也可以平滑回归原生能力。
 >
 > 注：这些 issue 位于 OpenAI 官方仓库，其中可包含社区提交的问题报告或功能请求；它们证明问题已经在上游公开记录，但不代表 OpenAI 已承诺具体修复时间。
 
@@ -22,7 +22,7 @@
 
 Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层模型担任“总指挥”，把边界清楚、可以独立完成的开发任务，并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再由顶层模型收回结果、整合代码和最终复核。
 
-它不是把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型仍不会出现在原生下拉菜单中；桥接通过可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，证明任务确实由指定模型完成。这个 UI 限制是 OpenAI Codex 的上游缺口，见 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
+它不是把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型目前仍不会出现在原生下拉菜单中；桥接通过可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，证明任务确实由指定模型完成。相关原生体验正在持续完善，官方追踪见 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
 
 **一次规划，多路执行；强模型把关，低成本扩编；调用可见，结果可证。**
 
@@ -101,7 +101,7 @@ OpenAI 顶层模型（规划、拆分、最终 Review）
 
 In Codex, the parent task shows a visible `codex_provider_workers.run_parallel` tool call. That tool call is the auditable delegation record.
 
-## Current UI limitation
+## Native UI status
 
 The bridge does not add DeepSeek to the model picker at the bottom of the Codex composer. Codex Desktop does not yet provide a safe provider-aware picker that can mix built-in OpenAI models and custom provider models. OpenAI's official Codex repository tracks the missing provider-aware Desktop picker in [#29156](https://github.com/openai/codex/issues/29156), the risk of a picker retaining the wrong provider/model pair in [#35487](https://github.com/openai/codex/issues/35487), and the broader provider-management request in [#45839](https://github.com/openai/codex/issues/45839).
 
