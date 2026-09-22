@@ -136,7 +136,7 @@ npm ci
 npm run verify
 cd ..\..
 codex plugin marketplace add .
-codex plugin add codex-deepseek-bridge@codex-deepseek-bridge
+codex plugin add codex-deepseek-bridge@zadyqs
 ```
 
 Restart Codex and start a new task so the plugin Skill and MCP tool are loaded. Provider setup is documented in [docs/PROVIDER_SETUP.md](docs/PROVIDER_SETUP.md).
@@ -210,7 +210,7 @@ If the bridge helps, star the repository, share sanitized attestation evidence, 
 
 ```powershell
 codex plugin remove codex-deepseek-bridge
-codex plugin marketplace remove codex-deepseek-bridge
+codex plugin marketplace remove zadyqs
 ```
 
 Removal does not delete provider profiles, environment variables, or Codex history.

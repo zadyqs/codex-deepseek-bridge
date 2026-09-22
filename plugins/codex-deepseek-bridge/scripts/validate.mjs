@@ -14,7 +14,7 @@ const marketplace = readJson(".agents/plugins/marketplace.json");
 
 assert.equal(packageJson.version, pluginJson.version, "package and plugin versions must match");
 assert.equal(pluginJson.name, "codex-deepseek-bridge");
-assert.equal(marketplace.name, "codex-deepseek-bridge");
+assert.equal(marketplace.name, "zadyqs");
 assert.equal(marketplace.plugins[0]?.name, pluginJson.name);
 assert.equal(marketplace.plugins[0]?.source?.path, "./plugins/codex-deepseek-bridge");
 
