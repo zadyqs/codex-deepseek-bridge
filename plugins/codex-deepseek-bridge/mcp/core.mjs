@@ -16,6 +16,34 @@ export function validateProfileName(profile) {
   return profile;
 }
 
+export function resolveWorkspaceCwd(cwd) {
+  if (typeof cwd !== "string" || !path.isAbsolute(cwd)) {
+    throw new Error("cwd must be an absolute path.");
+  }
+  const requested = path.resolve(cwd);
+  if (!fs.existsSync(requested) || !fs.statSync(requested).isDirectory()) {
+    throw new Error("cwd must identify an existing directory.");
+  }
+
+  // If the caller starts in a nested project folder, use the repository root so
+  // workspace-write covers the complete project without widening beyond it.
+  try {
+    const gitRoot = spawnSync("git", ["-C", requested, "rev-parse", "--show-toplevel"], {
+      encoding: "utf8",
+      windowsHide: true,
+    });
+    if (gitRoot.status === 0 && gitRoot.stdout.trim()) {
+      const resolvedGitRoot = path.resolve(gitRoot.stdout.trim());
+      if (fs.existsSync(resolvedGitRoot) && fs.statSync(resolvedGitRoot).isDirectory()) {
+        return resolvedGitRoot;
+      }
+    }
+  } catch {
+    // Git may not be installed or the directory may not be in a Git repository.
+  }
+  return requested;
+}
+
 export function validateTasks(tasks) {
   if (!Array.isArray(tasks) || tasks.length < 1 || tasks.length > MAX_TASKS) {
     throw new Error(`tasks must contain between 1 and ${MAX_TASKS} items.`);

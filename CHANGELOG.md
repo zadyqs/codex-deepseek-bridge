@@ -6,6 +6,8 @@ All notable changes are documented here. This project follows semantic versionin
 
 ### Added
 
+- Git workspace-root detection: when `cwd` points into a nested project folder, workers now receive the Git repository root as their bounded `workspace-write` root; non-Git workspaces retain the requested directory.
+- Parent-owned Git integration guidance for sandboxes where worker processes can edit/test files but `.git` is read-only.
 - Bounded 1-8 task batches with a maximum of four concurrent workers.
 - Per-task profile and reasoning-effort overrides.
 - Worker cancellation, result truncation, sandbox selection, and concurrency evidence.

@@ -5,10 +5,39 @@ import {
   parseCodexOutput,
   redactSecrets,
   rejectCredentialMaterial,
+  resolveWorkspaceCwd,
   runTaskPool,
   validateProfileName,
   validateTasks,
 } from "../mcp/core.mjs";
+
+test("workspace paths inside a Git project resolve to the repository root", async (t) => {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const { spawnSync } = await import("node:child_process");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codex-bridge-root-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const nested = path.join(root, "src", "feature");
+  fs.mkdirSync(nested, { recursive: true });
+  const initialized = spawnSync("git", ["-C", root, "init", "--quiet"], { encoding: "utf8" });
+  assert.equal(initialized.status, 0, initialized.stderr);
+  assert.equal(resolveWorkspaceCwd(nested), root);
+});
+
+test("non-Git workspaces keep the requested directory as their write root", async (t) => {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codex-bridge-nongit-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  assert.equal(resolveWorkspaceCwd(root), root);
+});
+
+test("workspace path validation fails clearly", () => {
+  assert.throws(() => resolveWorkspaceCwd("relative/path"), /absolute path/);
+  assert.throws(() => resolveWorkspaceCwd("C:/this/path/does/not/exist"), /existing directory/);
+});
 
 test("parseCodexOutput extracts the child thread and final answer", () => {
   const stdout = [

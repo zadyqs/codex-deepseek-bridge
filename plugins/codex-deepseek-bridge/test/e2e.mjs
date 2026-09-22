@@ -6,6 +6,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspace = path.resolve(pluginRoot, "..", "..");
+const requestedCwd = path.join(pluginRoot, "mcp");
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [path.join(pluginRoot, "dist", "index.mjs")],
@@ -28,7 +29,7 @@ try {
       expected_reasoning_effort: "high",
       max_concurrency: 2,
       sandbox: "read-only",
-      cwd: workspace,
+      cwd: requestedCwd,
       timeout_seconds: 180,
       tasks: [
         { id: "e2e-a", prompt: "Do not use tools or change files. Reply with exactly BRIDGE_E2E_A_OK" },
@@ -42,6 +43,7 @@ try {
   assert.equal(payload.successCount, 2);
   assert.equal(payload.failureCount, 0);
   assert.equal(payload.peakConcurrency, 2);
+  assert.equal(payload.workspaceRoot, workspace);
   assert(payload.overlapMs > 0);
   assert.deepEqual(payload.verifiedProviders, ["deepseek"]);
   assert.deepEqual(payload.verifiedModels, ["deepseek-flash"]);

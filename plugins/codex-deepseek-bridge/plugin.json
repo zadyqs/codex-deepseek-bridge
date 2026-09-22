@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "codex-deepseek-bridge",
-  "version": "0.1.0+codex.20260922125630",
+  "version": "0.1.0+codex.20260922231453",
   "description": "Let an OpenAI parent delegate verified parallel work to DeepSeek or other configured provider profiles.",
   "author": {
     "name": "zadyqs",

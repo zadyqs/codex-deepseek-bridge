@@ -11,8 +11,10 @@
 > - [OpenAI Codex 官方仓库 #29156](https://github.com/openai/codex/issues/29156)：Codex Desktop 尚无安全、完整的第三方 provider 模型选择器；
 > - [OpenAI Codex 官方仓库 #35487](https://github.com/openai/codex/issues/35487)：模型菜单可能把 OpenAI 模型错误写入第三方 provider profile；
 > - [OpenAI Codex 官方仓库 #45839](https://github.com/openai/codex/issues/45839)：社区请求官方提供 provider 管理、GUI 选择与故障切换能力。
+> - [OpenAI Codex 官方仓库 #40858](https://github.com/openai/codex/issues/40858)：近期报告指出 native subagent 的 `model_provider` 覆盖可能没有生效；
+> - [OpenAI Codex 官方仓库 #36387](https://github.com/openai/codex/issues/36387)：Windows 上跨 provider 子任务载荷问题的报告，已作为重复项关闭。
 >
-> 本项目围绕这些公开讨论，提供一条可实践、可验证、可卸载的多 provider 并行路径，帮助探索 Codex 的跨模型协作体验。随着原生能力逐步完善，也可以平滑回归官方方案。
+> 本项目围绕这些公开讨论，提供一条可实践、可验证、可卸载的多 provider 并行路径，帮助探索 Codex 的跨模型协作体验。2026-09-22 在本机 Codex CLI 0.155.1 的验收中，原生 custom subagent 虽被创建，但 DeepSeek 请求仍落到 ChatGPT 登录通道并报“不支持该模型”；因此当前不能把官方 provider profile 等同于可用的跨 provider 原生并行调度。随着原生能力逐步完善，也可以平滑回归官方方案。
 >
 > 注：这些 issue 位于 OpenAI 官方仓库，其中可包含社区提交的问题报告或功能请求；它们证明问题已经在上游公开记录，但不代表 OpenAI 已承诺具体修复时间。
 
@@ -95,6 +97,8 @@ OpenAI 顶层模型（规划、拆分、最终 Review）
 - The default `deepseek` profile can be overridden per batch or per task.
 - Each task can choose its own profile and reasoning effort, enabling mixed-provider batches.
 - Worker execution is bounded by a timeout, output limit, cancellation signal, and `read-only` or `workspace-write` sandbox.
+- For Git workspaces, a path inside the repository is promoted to the Git root, allowing workers to edit across the project tree while keeping the workspace-write boundary at that repository.
+- Workers can edit and test files, while `.git` may remain read-only inside their sandbox. The parent agent should review the returned work and perform Git staging/commit from the parent task.
 - Results include child thread IDs, provider/model/reasoning attestation, timing, concurrency, truncation state, and errors.
 - Optional expected provider/model/reasoning fields fail the batch closed when runtime attestation differs.
 - Credentials stay in environment variables and are screened from prompts and returned output.

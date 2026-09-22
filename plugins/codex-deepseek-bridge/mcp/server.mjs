@@ -1,11 +1,10 @@
-import fs from "node:fs";
-import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import {
   enforceAttestation,
   rejectCredentialMaterial,
+  resolveWorkspaceCwd,
   runTaskPool,
   runWorker,
   validateProfileName,
@@ -67,16 +66,13 @@ server.registerTool(
     validateProfileName(profile);
     validateTasks(tasks);
     rejectCredentialMaterial(tasks);
-    if (!path.isAbsolute(cwd)) throw new Error("cwd must be an absolute path.");
-    if (!fs.existsSync(cwd) || !fs.statSync(cwd).isDirectory()) {
-      throw new Error("cwd must identify an existing directory.");
-    }
+    const workspaceRoot = resolveWorkspaceCwd(cwd);
 
     const batchStartedAt = new Date();
     const { results, peakConcurrency } = await runTaskPool(tasks, max_concurrency, async (task) => {
       const result = await runWorker({
         task,
-        cwd,
+        cwd: workspaceRoot,
         profile: task.profile ?? profile,
         timeoutSeconds: timeout_seconds,
         reasoningEffort: task.reasoning_effort ?? reasoning_effort,
@@ -104,6 +100,7 @@ server.registerTool(
       failureCount: results.length - successCount,
       maxConcurrency: max_concurrency,
       peakConcurrency,
+      workspaceRoot,
       requestedProfile: profile,
       verifiedProviders: providers,
       verifiedModels: models,
@@ -117,6 +114,7 @@ server.registerTool(
       `Provider batch: ${successCount}/${results.length} workers succeeded; peak concurrency ${peakConcurrency}.`,
       `Verified provider(s): ${providers.join(", ") || "unverified"}.`,
       `Verified model(s): ${models.join(", ") || "unverified"}.`,
+      `Workspace root: ${workspaceRoot}.`,
     ].join(" ");
 
     return {
