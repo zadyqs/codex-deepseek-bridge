@@ -113,7 +113,7 @@ This project complements that work with an immediately usable, reversible path. 
 
 1. 顶层 Codex 任务中出现可见的 `codex_provider_workers.run_parallel` 调用；
 2. `peakConcurrency` 大于 1 且 `overlapMs` 大于 0，证明 worker 的确并行；
-3. 每个结果的 `attestation.verified` 为 `true`，并由运行时报告 `provider=deepseek`、`model=deepseek-flash`、`reasoningEffort=max`；
+3. 每个结果的 `attestation.verified` 为 `true`，并由运行时报告 `provider=deepseek`、`model=deepseek-flash`、以及与请求相符的 `reasoningEffort`；
 4. `expectationsMet=true`；provider、模型或推理强度只要有一项不符，桥接就失败关闭，而不是悄悄换模型。
 
 The native picker is not the proof. The visible MCP call, real overlap, per-worker runtime attestation, and fail-closed expectations are the proof. See the [sanitized live acceptance record](docs/VERIFIED_LIVE_PROOF.md), including the exact results, independent child task IDs, reproduction prompt, and evidence boundaries.
@@ -151,10 +151,10 @@ The parent normally supplies:
 {
   "cwd": "C:\\absolute\\workspace",
   "profile": "deepseek",
-  "reasoning_effort": "max",
+  "reasoning_effort": "high",
   "expected_provider": "deepseek",
   "expected_model": "deepseek-flash",
-  "expected_reasoning_effort": "max",
+  "expected_reasoning_effort": "high",
   "max_concurrency": 2,
   "sandbox": "workspace-write",
   "tasks": [
@@ -164,7 +164,7 @@ The parent normally supplies:
 }
 ```
 
-For mixed providers, put `profile` and optionally `reasoning_effort` on each task. The parent remains responsible for conflict-free task boundaries, integration, and final verification.
+For DeepSeek V4.1 Flash, `high` is the recommended default for ordinary parallel workers; reserve `max` for clearly hard debugging, architecture, or final critical review. For mixed providers, put `profile` and optionally `reasoning_effort` on each task. The parent remains responsible for conflict-free task boundaries, integration, and final verification.
 
 ## Testing and review
 

@@ -39,6 +39,8 @@ Both expectationsMet=true; both attestations verified
 provider=deepseek, model=deepseek-flash, reasoningEffort=max.
 ```
 
+This historical release run used `max` to establish the upper-bound acceptance record. The current recommended default for ordinary parallel workers is `high`; use `max` only when the parent identifies a genuinely hard task.
+
 ## Why this is stronger than a model-picker label
 
 A dropdown label proves only what the interface displays. This acceptance verifies what each child process actually used at runtime. The bridge rejects the batch when the reported provider, model, or reasoning effort differs from the expected value.

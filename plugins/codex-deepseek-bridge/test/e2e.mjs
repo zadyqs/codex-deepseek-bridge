@@ -22,10 +22,10 @@ try {
     name: "run_parallel",
     arguments: {
       profile: "deepseek",
-      reasoning_effort: "max",
+      reasoning_effort: "high",
       expected_provider: "deepseek",
       expected_model: "deepseek-flash",
-      expected_reasoning_effort: "max",
+      expected_reasoning_effort: "high",
       max_concurrency: 2,
       sandbox: "read-only",
       cwd: workspace,
@@ -49,7 +49,7 @@ try {
   assert.equal(payload.results[1].result, "BRIDGE_E2E_B_OK");
   assert(payload.results.every((item) => item.attestation?.verified));
   assert(payload.results.every((item) => item.expectationsMet === true));
-  assert(payload.results.every((item) => item.attestation?.reasoningEffort === "max"));
+  assert(payload.results.every((item) => item.attestation?.reasoningEffort === "high"));
   process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 } finally {
   await client.close();

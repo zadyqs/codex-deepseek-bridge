@@ -8,6 +8,7 @@ description: Delegate independent Codex engineering tasks in parallel to DeepSee
 Use the `codex_provider_workers.run_parallel` MCP tool when two or more bounded tasks can run independently, or when the user explicitly requests a DeepSeek/custom-provider worker.
 
 - Default to profile `deepseek` unless the user names another configured profile.
+- For DeepSeek V4.1 Flash, default ordinary parallel workers to `high` reasoning effort. Reserve `max` for clearly hard debugging, architecture, or final critical-review tasks, and always attest the requested effort.
 - Pass an absolute existing workspace path as `cwd`.
 - Keep tasks independent and identify each with a short unique ID.
 - Never place credentials in prompts or tool arguments.

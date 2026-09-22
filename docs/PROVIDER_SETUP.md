@@ -2,7 +2,7 @@
 
 ## DeepSeek V4.1 Flash
 
-DeepSeek's official API ID for DeepSeek-V4.1-Flash is `deepseek-flash`. The official documentation lists Responses API support and `max` reasoning effort:
+DeepSeek's official API ID for DeepSeek-V4.1-Flash is `deepseek-flash`. Its reasoning effort is a controllable budget: `high` is the ordinary default and `max` is the highest setting. This bridge recommends `high` for normal parallel workers, reserving `max` for clearly difficult work:
 
 - [Models and pricing](https://api-docs.deepseek.com/quick_start/pricing/)
 - [Responses API](https://api-docs.deepseek.com/api/create-response/)
@@ -26,7 +26,7 @@ Create `%USERPROFILE%\.codex\deepseek.config.toml` on Windows or `~/.codex/deeps
 ```toml
 model = "deepseek-flash"
 model_provider = "deepseek"
-model_reasoning_effort = "max"
+model_reasoning_effort = "high"
 web_search = "disabled"
 ```
 
