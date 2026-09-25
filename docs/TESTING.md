@@ -23,6 +23,8 @@ The gate checks syntax, unit behavior, durable job lifecycle, cancellation/proce
 
 The synchronous test passes only when both exact responses return and both rollouts attest provider `deepseek` and model `deepseek-flash`. The background test requires a real result marker and `deepseek/deepseek-flash/high` attestation. A short live background acceptance validates lifecycle separation but is not a measured 300-second endurance run.
 
+The later [SnakeBattle field report summary](SNAKEBATTLE_CASE_STUDY.md) records 10 actual production jobs over 300 seconds, but **did not test a real MCP/client reconnect**. The short scripted reconnect and field endurance are different acceptance cases. Neither proves power-loss or worker-kill recovery. The field report's `216/216` tests belong to the game, not this package.
+
 Live tests are intentionally excluded from normal pull-request CI because forked pull requests must not receive secrets and routine changes should not create API charges. Maintainers can run the `Live DeepSeek E2E` workflow manually after configuring the repository secret.
 
 ## Release review

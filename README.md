@@ -7,7 +7,7 @@
 
 > **强模型做难判断，外部 worker 做有界执行。** 本项目让顶层 Codex 通过可见的 MCP 调用，将合适的工程任务交给单独计费的 DeepSeek worker；结果由顶层独立审查、复测和提交。它旨在减少高能力模型承担的重复性工作，让有限的 Codex 使用额度更多留给架构、疑难问题与最终验收；**不保证任何固定的额度节省倍数，也不会改变账户的五小时窗口规则。**
 
-已真实验证：`deepseek/deepseek-flash/high` 的双 worker 同步并行、运行时验真，以及持久化 Job 的提交、重连查询与结果回收。其他 provider/profile 只是架构兼容，未经各自端到端验真不宣称已支持。DeepSeek API 调用由用户自己的账户单独计费。
+适合已经使用 Codex、有真实代码项目，希望由顶层模型拆任务和验收、让 DeepSeek 承接部分工程工作的个人开发者。已真实验证：`deepseek/deepseek-flash/high` 的双 worker 同步并行，以及 SnakeBattle 项目中超过 300 秒的后台任务存活与结果回收。测试脚本另验证了短任务的 MCP 客户端重新连接；**SnakeBattle 现场没有进行真正的客户端重连或断电恢复测试**。其他 provider/profile 只是架构兼容，未经各自端到端验真不宣称已支持。DeepSeek API 由用户自己的账户单独计费。
 
 不做的事：不把 DeepSeek 加进 Codex 原生模型下拉菜单，不自动合并代码，不绕过 worker 沙箱，也不做万能路由器。相关 Codex 原生 provider 讨论见 [OpenAI 官方仓库 #29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487)、[#40858](https://github.com/openai/codex/issues/40858)。
 
@@ -19,7 +19,9 @@ Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层�
 
 它不把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型目前仍通过独立 profile 与桥接调用协作；可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，会记录任务实际由哪个模型完成。相关体验与讨论见 Codex 官方仓库 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
 
-**一次规划，多路执行；强模型把关，低成本扩编；调用可见，结果可证。**
+**一次规划，多路执行；强模型把关，调用可见，结果可证。**
+
+项目状态：`FEATURE_FROZEN / MAINTENANCE_ONLY`。维护真实使用中的缺陷、安全问题与安装兼容性；不承诺持续增加模型或开发大型路由平台。
 
 ## English
 
@@ -27,7 +29,7 @@ Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层�
 
 Codex DeepSeek Bridge is a removable Codex plugin. Keep premium Codex models focused on high-value reasoning while independently billed DeepSeek workers handle bounded implementation tasks. Short tasks use synchronous parallel calls; longer tasks use durable background jobs. Every worker is checked against runtime provider/model/reasoning evidence. This can make limited premium usage go further, but it does not change plan limits or promise measured savings.
 
-**Plan once. Execute in parallel. Scale with value. Verify every result.**
+**Plan once. Execute in parallel. Verify every result.** Field evidence from one SnakeBattle project includes production jobs over 300 seconds; it does not establish universal reliability, client reconnection, power-loss recovery, or measured savings.
 
 ## 它到底是什么？ / What exactly is it?
 
@@ -106,11 +108,13 @@ In Codex, the parent task shows visible `codex_provider_workers.run_parallel` or
 | `run_parallel` | Short reviews, small edits, focused tests | One blocking call. The parent/tool call may end before a large task finishes; increasing worker timeout alone cannot prevent that. |
 | `submit_jobs` | Feature-sized work that may outlive one MCP call | Returns a `job_id` promptly. A detached local supervisor continues after the MCP server/parent window closes. Query with `get_job_status`, recover IDs with `list_jobs`, read with `collect_results`, or stop with `cancel_job`. |
 
-Job metadata and bounded results live in the current user's `~/.codex-worker-bridge/jobs/<job_id>/` (Windows: `%USERPROFILE%\.codex-worker-bridge\jobs\<job_id>\`). Prompts are held only in a private transient launch file, removed when the supervisor starts. Provider environment variables are not serialized, and known credential values in arguments are rejected; still, never put secrets in prompts. Protect this directory like other local development logs. This is a local single-user facility, not a cloud queue or a power-loss guarantee.
+Job metadata and bounded results live in the current user's `~/.codex-worker-bridge/jobs/<job_id>/` (Windows: `%USERPROFILE%\.codex-worker-bridge\jobs\<job_id>\`). Prompts are held only in a private transient launch file, removed when the supervisor starts. Provider environment variables are not serialized, and known credential values in arguments are rejected; still, never put secrets in prompts. The delegated prompt and relevant code/context may be sent by the configured Codex provider to DeepSeek or another external model service. Protect the local job directory like other development logs. This is a local single-user facility, not a cloud queue or a power-loss guarantee.
 
 Timeout policies: `short=600s`, `feature=3600s` (default), `extended` requires explicit `timeout_seconds`; every job is capped at `7200s`. `run_parallel` retains its 30–1200s per-worker timeout. A worker timeout is `timed_out`; explicit cancellation is `cancelled`; provider/process/attestation failure is `failed`. An outer MCP/tool timeout is outside the background worker: retrieve the job ID through `list_jobs` and inspect it instead of assuming the worker stopped. A failed or cancelled `workspace-write` task may have left partial file edits; inspect the workspace before retrying.
 
 For longer work, ask the parent to submit bounded tasks, then poll status and collect results. Do not block one tool call for the whole feature. The parent should review and rerun tests before committing.
+
+并行写代码时优先让每个 worker 使用独立 worktree，或至少分配互不重叠的文件范围；不要让多个 worker 同时改同一批文件。父任务负责检查完整 diff、解决冲突、独立复测并提交。`attestation.verified=true` 代表 Bridge 从 Codex 子任务记录核对了运行身份，并非模型厂商签发的密码学证明。
 
 ## 与 Codex 原生体验协作 / Working alongside native Codex
 
@@ -131,17 +135,18 @@ The native picker is not the proof. The visible MCP call, real overlap, per-work
 
 ## Requirements
 
-- Codex CLI available on `PATH`
-- Node.js 20 or newer
+- Windows PowerShell 或 Linux；项目 CI 在 Windows、Ubuntu 上运行，真实现场案例来自 Windows，其他系统未作同等现场验收
+- Codex CLI available on `PATH`（本次核验使用 `codex-cli 0.155.1`；不是最低兼容版本承诺）
+- Node.js 20 or newer（CI 使用 Node.js 20）
 - A working Codex profile for each external provider
-- Provider credentials stored in environment variables
+- Provider credentials stored in environment variables; DeepSeek 账户和 API 调用费用由使用者承担
 
-DeepSeek's current official API model ID for DeepSeek-V4.1-Flash is `deepseek-flash`. See [DeepSeek's model and pricing page](https://api-docs.deepseek.com/quick_start/pricing/) and [Responses API reference](https://api-docs.deepseek.com/api/create-response/).
+本项目验收记录中的 DeepSeek profile 使用模型 ID `deepseek-flash`；这是**该次运行记录**，不是对未来 API 型号或价格的承诺。首次安装前请核对 [DeepSeek 模型与价格](https://api-docs.deepseek.com/quick_start/pricing/)及 [Responses API 文档](https://api-docs.deepseek.com/api/create-response/)。
 
 ## Install
 
 ```powershell
-git clone https://github.com/zadyqs/codex-deepseek-bridge.git
+git clone --branch v0.1.0 https://github.com/zadyqs/codex-deepseek-bridge.git
 cd codex-deepseek-bridge\plugins\codex-deepseek-bridge
 npm ci
 npm run verify
@@ -150,7 +155,7 @@ codex plugin marketplace add .
 codex plugin add codex-deepseek-bridge@zadyqs
 ```
 
-Restart Codex and start a new task so the plugin Skill and MCP tool are loaded. Provider setup is documented in [docs/PROVIDER_SETUP.md](docs/PROVIDER_SETUP.md).
+以上固定安装已发布的 `v0.1.0`；需要最新维护修订时再明确切换到相应提交或新版本。重启 Codex 并新建任务，让插件 Skill 和 MCP 工具加载。按 [provider 设置](docs/PROVIDER_SETUP.md)在用户环境中配置 `DEEPSEEK_API_KEY` 与 `deepseek` profile，先进行最小只读调用；不要把密钥粘进任务、仓库或 Issue。Linux 用户使用同样命令，并将 `cd` 路径分隔符改为 `/`。
 
 ## Example request
 
@@ -179,6 +184,24 @@ For DeepSeek V4.1 Flash, `high` is the recommended default for ordinary parallel
 
 For a feature-sized task, ask: “Use `submit_jobs` with `timeout_policy=feature`, `reasoning_effort=high`, and expected `deepseek/deepseek-flash/high`; return the job ID, check status later, collect the result, then independently review and test before committing.” The default feature budget is one hour; use `extended` only with an explicit bounded timeout.
 
+最小后台示例使用当前 MCP schema；把 `cwd` 换成你自己的绝对项目路径，不要在公开 Issue 中贴出它：
+
+```json
+{
+  "cwd": "C:\\path\\to\\your-project",
+  "profile": "deepseek",
+  "reasoning_effort": "high",
+  "expected_provider": "deepseek",
+  "expected_model": "deepseek-flash",
+  "expected_reasoning_effort": "high",
+  "timeout_policy": "short",
+  "sandbox": "read-only",
+  "tasks": [{ "id": "audit", "prompt": "Read one small module and return three concrete findings; do not edit files." }]
+}
+```
+
+顶层调用 `submit_jobs` 得到 `job_id`，再以该 ID 调用 `get_job_status` 和 `collect_results`；若首次回复丢失，可用 `list_jobs` 找回。功能性写入任务改为 `workspace-write`，并先划定文件边界。下游模型输出只是待审核工作，不是自动验收结论。
+
 ## Testing and review
 
 ```powershell
@@ -190,9 +213,16 @@ npm run test:e2e
 
 `npm run verify` is offline and safe for normal CI. `npm run test:e2e` makes real DeepSeek API calls and requires a configured `deepseek` profile, so it is intentionally opt-in. A manually triggered GitHub Actions workflow is provided for maintainers who add a `DEEPSEEK_API_KEY` repository secret. See [docs/TESTING.md](docs/TESTING.md).
 
+## 真实项目证据与边界 / Field evidence
+
+在**一个** SnakeBattle 项目的 2026-09-25 现场报告中，顶层 Codex 完成了后台提交、状态查询和结果回收。报告列出 12 项真实工程任务，其中 10 项 worker 实际运行超过 300 秒；最长 `1,553,082 ms`（约 25 分 53 秒），不是人为等待。现场还用 `list_jobs` 在独立工具调用中找回同一任务。父任务发现过单位、同波合堵和解释错误，修改并独立复测后才提交。游戏工程最终 `216/216` 是**游戏测试**，不是 Bridge 的测试数。详见[脱敏案例](docs/SNAKEBATTLE_CASE_STUDY.md)与[证据分级](FINAL_CLOSEOUT_2026-09-25.md)。
+
+现场未做真正的 MCP 客户端重连、断电恢复或强杀 worker 后恢复。`feature=3600s` 与 `extended≤7200s` 是**配置上限**，不是已实测连续运行一或两小时。12 项记录也不能推出总体零失败率或所有系统都可靠。
+
 ## Documentation
 
 - [v0.1.0 final release report](FINAL_RELEASE_REPORT.md)
+- [2026-09-25 final closeout and field-evidence update](FINAL_CLOSEOUT_2026-09-25.md)
 - [Real SnakeBattle case study and evidence boundary](docs/SNAKEBATTLE_CASE_STUDY.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [Provider setup](docs/PROVIDER_SETUP.md)
@@ -208,18 +238,15 @@ Create a separate Codex profile containing the exact provider/model pair, valida
 
 The packaged MCP manifest forwards only `DEEPSEEK_API_KEY` and `OPENROUTER_API_KEY`. If a provider uses a different credential variable, add only that variable name to `.mcp.json`, rebuild, and reinstall. Never claim compatibility from configuration alone: set `expected_provider`, `expected_model`, and `expected_reasoning_effort`, then require a successful live attestation.
 
-## 让更多开发者看到 / Help the project grow
+## 常见问题与反馈 / FAQ
 
-如果这个项目帮你把“高能力总指挥 + 高性价比并行 worker”真正跑通：
+- **为什么不直接把主模型改成 DeepSeek？** 本项目保留 Codex 顶层模型负责拆分、复核和整合，只把有边界的任务交给 DeepSeek；它不改变原生模型选择菜单。
+- **需要密钥或额外付费吗？** 需要自己的 DeepSeek API Key；外部 API 按提供方规则单独计费。Codex 顶层规划、工具调用和验收仍可能消耗 Codex 额度，不承诺节省比例。
+- **长任务依赖什么存活？** 依赖本机、后台 supervisor/worker 进程和供应商服务继续可用。数据落盘支持状态与结果查询，但不保证断电、强杀或所有客户端重连场景自动恢复。
+- **谁验收代码？** 顶层/使用者必须审查完整 diff 并在正常工程环境独立复测，再决定是否提交；多个 worker 写同一文件集合不是安全默认值。
+- **出问题如何反馈？** 在 [Issues](https://github.com/zadyqs/codex-deepseek-bridge/issues) 提供插件/CLI/Node 版本、操作系统、复现步骤、预期/实际结果和脱敏后的任务状态、错误；不要上传 API Key、完整 rollout、私有代码或用户目录路径。安全问题按 [SECURITY.md](SECURITY.md) 私下报告。
 
-- 给仓库一个 Star，让更多遇到相同 Codex provider 限制的人更容易找到它；
-- 分享真实的 provider、模型和验真结果，但不要公开 API Key 或原始 rollout；
-- 通过 Issues 提交可复现的问题、provider 兼容报告或改进建议；
-- 欢迎贡献新的 provider 配置示例、测试与文档，所有“支持”声明都必须有真实调用证据。
-
-**把昂贵推理留给关键判断，把批量执行交给可验证的高性价比模型。**
-
-If the bridge helps, star the repository, share sanitized attestation evidence, and contribute reproducible provider reports. Every compatibility claim should be backed by a real call—not a configuration screenshot.
+本项目进入 `FEATURE_FROZEN / MAINTENANCE_ONLY`：维护自用与可复现问题，不承诺持续扩展功能。欢迎基于真实调用证据提交反馈或改进；仓库采用 [MIT 许可证](LICENSE)，但许可证不支付或免除外部 API 成本。
 
 ## Removal
 
@@ -229,6 +256,7 @@ codex plugin marketplace remove zadyqs
 ```
 
 Removal does not delete provider profiles, environment variables, or Codex history.
+如需回退，请先备份自己的 Codex 配置与需要保留的 Job 结果，确认没有仍在运行的任务，再卸载插件；不要删除其他 MCP/provider 配置或整个 Job 目录。
 
 ## License
 

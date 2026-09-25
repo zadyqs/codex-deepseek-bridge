@@ -2,6 +2,14 @@
 
 This case study separates evidence recorded in the project's 2026-09-23 experiment report from maintainer interpretation. The game project's source and raw Codex rollouts are not copied here; they may contain private workspace context.
 
+## 2026-09-25 field acceptance update
+
+The maintainer's later SnakeBattle field report records an OpenAI/Codex parent using `submit_jobs` → `get_job_status` → `collect_results` on actual TypeScript engineering work, not artificial sleep. Of 12 listed jobs, 10 worker durations exceed 300 seconds; the longest is `1,553,082 ms` (about 25 minutes 53 seconds). A separate `list_jobs` invocation recovered a running job ID, which was then queried and collected. The reported runtime checks for these jobs read `deepseek / deepseek-flash / high` with `attestation.verified=true`. This is a Bridge check against Codex child records, not a vendor-issued cryptographic attestation.
+
+The field report also shows why the parent remains responsible: it found and corrected world-unit versus fixed-point-unit handling, a same-wave obstacle blockage risk, and an incorrect explanation of a Boss warning duration. The final `216/216` count belongs to SnakeBattle's own tests, **not** to this bridge. A worker-reported 672 randomized checks were not independently rerun by the parent. No measured API-cost or premium-usage comparison was made.
+
+**Evidence boundary:** This single-project field run proves that real background jobs survived beyond 300 seconds and their results were retrievable. It did **not** exercise a real MCP/client reconnect, Windows shutdown, power loss, or worker-process kill/recovery. `list_jobs` across independent tool calls is not a reconnect test. The configured one- and two-hour limits were not both exercised. The field run made no bridge source changes; the exact installed-binary-to-source-commit mapping was not captured as immutable build provenance. The earlier packaged test did reconnect an MCP client for a short job, but it is a different, narrower test.
+
 ## Confirmed in the experiment report and repository history
 
 - A Codex parent delegated two independent read-only audits to DeepSeek workers. Their executions overlapped by about 92 seconds, and child rollout attestation reported `deepseek / deepseek-flash / high`.

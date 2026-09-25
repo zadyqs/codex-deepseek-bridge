@@ -32,6 +32,13 @@ body:
     validations:
       required: true
   - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the job status and failure category if available; redact private paths and content.
+    validations:
+      required: true
+  - type: textarea
     id: evidence
     attributes:
       label: Redacted evidence

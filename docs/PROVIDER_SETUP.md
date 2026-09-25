@@ -2,7 +2,7 @@
 
 ## DeepSeek V4.1 Flash
 
-DeepSeek's official API ID for DeepSeek-V4.1-Flash is `deepseek-flash`. Its reasoning effort is a controllable budget: `high` is the ordinary default and `max` is the highest setting. This bridge recommends `high` for normal parallel workers, reserving `max` for clearly difficult work:
+The verified bridge runs used the model ID `deepseek-flash` and usually requested reasoning effort `high`; an earlier parent acceptance used `max`. These are recorded profile settings, not a promise about future product names, prices, or quality rankings. Check the provider's current documentation before configuring a new account:
 
 - [Models and pricing](https://api-docs.deepseek.com/quick_start/pricing/)
 - [Responses API](https://api-docs.deepseek.com/api/create-response/)

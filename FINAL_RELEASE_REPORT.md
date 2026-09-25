@@ -1,5 +1,7 @@
 # Codex DeepSeek Bridge v0.1.0 — final release report
 
+Historical snapshot: the later [2026-09-25 field closeout](FINAL_CLOSEOUT_2026-09-25.md) records real SnakeBattle jobs over 300 seconds. It supersedes only the time-bound statement below that no such field endurance had yet been measured; the short scripted reconnect and long field runs remain separate evidence.
+
 This report is based on the release implementation commit `f136a37a4064fc0c5dfc70ee8b8d09b699764a29`. The report-only commit and annotated tag are resolved with `git rev-parse v0.1.0^{commit}` after publication; a file cannot contain its own Git SHA without changing that SHA.
 
 1. **Final commit SHA:** implementation commit `f136a37a4064fc0c5dfc70ee8b8d09b699764a29`; the release tag will identify the final report commit.
