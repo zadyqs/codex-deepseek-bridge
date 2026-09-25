@@ -192,6 +192,7 @@ npm run test:e2e
 
 ## Documentation
 
+- [v0.1.0 final release report](FINAL_RELEASE_REPORT.md)
 - [Real SnakeBattle case study and evidence boundary](docs/SNAKEBATTLE_CASE_STUDY.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [Provider setup](docs/PROVIDER_SETUP.md)
