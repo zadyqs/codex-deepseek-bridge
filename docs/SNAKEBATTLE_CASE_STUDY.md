@@ -8,6 +8,17 @@ The maintainer's later SnakeBattle field report records an OpenAI/Codex parent u
 
 The field report also shows why the parent remains responsible: it found and corrected world-unit versus fixed-point-unit handling, a same-wave obstacle blockage risk, and an incorrect explanation of a Boss warning duration. The final `216/216` count belongs to SnakeBattle's own tests, **not** to this bridge. A worker-reported 672 randomized checks were not independently rerun by the parent. No measured API-cost or premium-usage comparison was made.
 
+Two concrete parent-to-worker chains in that report make the boundary visible:
+
+| Field job (prefix) | Parent-observed lifecycle | Parent-owned acceptance |
+| --- | --- | --- |
+| `f819e1b1` | The top-level Codex submitted the temporary-obstacle safety task, got a queued job ID immediately, saw it still running after roughly 428 seconds, then separately collected `succeeded`, `expectationsMet=true`, and an untruncated result after `431,116 ms`. The recorded attestation was `deepseek / deepseek-flash / high`. | The parent reran 147/147 game tests and typecheck but held integration after finding a world-unit versus fixed-point-unit mismatch. A separate `14af7abf` correction ran `320,285 ms`; the parent reran the focused 25/25 tests before committing. |
+| `6204979d` | A separate long-snake route simulation was still running at `305,826 ms` and was later collected as succeeded after `1,553,082 ms`, with the same attested worker identity. | The parent reran its eight focused game tests and committed the reviewed result. |
+
+The 12-job table in the private field report includes both read-only audits and code-producing tasks. Ten worker durations exceed 300 seconds; the two shorter entries are not counted as long-task evidence. Results that left valid, uncommitted workspace changes were not classified as bridge failures. The parent, not the worker, owned review, corrective dispatches, tests, and Git commits.
+
+One worker's sandboxed `npm test` failed with Node child-process `spawn EPERM`. A single-process fallback returned 195/195 there, but the parent did **not** treat that fallback as the standard test gate: it ran normal `npm test` in its own environment, strengthened the review boundary, and obtained 196/196 before committing. This is an environment-permission distinction, not evidence that the bridge or production code failed. Later game tests reached 216/216 after additional parent review and fixes.
+
 **Evidence boundary:** This single-project field run proves that real background jobs survived beyond 300 seconds and their results were retrievable. It did **not** exercise a real MCP/client reconnect, Windows shutdown, power loss, or worker-process kill/recovery. `list_jobs` across independent tool calls is not a reconnect test. The configured one- and two-hour limits were not both exercised. The field run made no bridge source changes; the exact installed-binary-to-source-commit mapping was not captured as immutable build provenance. The earlier packaged test did reconnect an MCP client for a short job, but it is a different, narrower test.
 
 ## Confirmed in the experiment report and repository history

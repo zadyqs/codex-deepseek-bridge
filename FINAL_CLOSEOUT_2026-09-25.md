@@ -19,9 +19,11 @@
 | --- | --- | --- |
 | 顶层 Codex 直接完成后台 `submit_jobs → get_job_status → collect_results` | 现场实测 | 2026-09-25 SnakeBattle 现场报告；单一真实项目。 |
 | 12 项真实工程 Job 中 10 项 worker 超过 300 秒，最长 `1,553,082 ms`（约 25 分 53 秒） | 现场实测 | 生产任务，非人工 sleep；说明 >300 秒存活和回收，不代表总体零失败。 |
+| 顶层提交的障碍安全 Job 在约 428 秒仍为 running，最终 `431,116 ms` 成功回收 | 现场实测 | `submit_jobs` 立即给出 queued/Job ID，独立 `get_job_status` 与 `collect_results` 回收完整结果；父任务发现单位边界后暂缓接入。另有 25 分 53 秒生产 Job 成功回收。 |
 | `list_jobs` 在独立工具调用中找回同一任务 | 现场实测 | 不是客户端重连。 |
 | `deepseek / deepseek-flash / high`，`attestation.verified=true` | 现场实测记录 | Bridge 根据 Codex 子任务记录核验；不是模型厂商或密码学独立证明，也不保证未来模型命名。 |
 | 父任务发现单位、同波合堵与解释错误并修正；游戏最终 `216/216` | 现场实测报告 | `216/216` 是 SnakeBattle 游戏测试，不是 Bridge 的测试数；worker 自报 672 组随机检查未经父任务独立复跑。 |
+| worker 沙箱内标准 `npm test` 遇到 `spawn EPERM` | 现场实测报告 | worker 用单进程回退得到 195/195；父任务在正常环境独立运行标准测试并补强审查，得到 196/196 后提交。不能把回退等同于标准测试通过。 |
 | 短任务脚本跨 MCP 客户端重新连接收回结果 | 本仓库真实 API 测试 | `test:e2e-job` 的受控短任务；不能与上述现场长任务合并成一次“长任务重连”实验。 |
 | 21 项离线测试；同步 2 worker 并行 | 本仓库测试 | 覆盖源码/打包基础能力；CI Windows/Ubuntu，API 调用需另跑。 |
 | `feature=3600s`、`extended≤7200s`、取消/失败分类与持久化 | 代码/配置支持 | 是上限与设计，不等于真实连续运行 1–2 小时或断电恢复。 |
@@ -33,6 +35,7 @@
 
 - `README.md`：中文首屏、适用人群、安装/首次调用、数据与计费边界、真实场景证据、并行写入治理、FAQ、卸载与 Feature Freeze。
 - `docs/SNAKEBATTLE_CASE_STUDY.md`、`docs/VERIFIED_LIVE_PROOF.md`、`docs/TESTING.md`：把 >300 秒现场耐久、脚本短任务重连和未测的真实客户端重连分开。
+- 案例中的精确 Job 前缀与时间均引自 SnakeBattle 现场报告；私有工程源码、原始 rollout、密钥和完整 Job 日志未复制到公开仓库。
 - `docs/PROVIDER_SETUP.md`：把 `deepseek-flash` 作为验收所用 ID，而非未来 API 命名承诺。
 - `SECURITY.md`：准确说明进程环境继承及委派代码可能传给外部模型服务。
 - `CHANGELOG.md`：记录本轮文档/证据收口，不冒充新执行能力。

@@ -7,6 +7,7 @@ All notable changes are documented here. This project follows semantic versionin
 ### Documentation and field-evidence closeout (2026-09-25)
 
 - Recorded SnakeBattle field acceptance: 12 real jobs, 10 worker durations over 300 seconds, longest about 25 minutes 53 seconds; separated this from the short scripted MCP reconnect test.
+- Added concrete parent submit/status/collect chains and distinguished a worker sandbox `spawn EPERM` fallback from the parent's standard test rerun.
 - Clarified provider attestation, external API/data boundaries, parent-owned code review, parallel write isolation, installation prerequisites, and maintenance-only status.
 - Added a final closeout and a restrained author-disclosed promotion handoff. No bridge runtime code, version, or published tag changed in this closeout.
 
