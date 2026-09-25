@@ -47,6 +47,7 @@ for (const required of [
   "plugins/codex-deepseek-bridge/plugin.json",
   "plugins/codex-deepseek-bridge/mcp.json",
   "plugins/codex-deepseek-bridge/dist/index.mjs",
+  "plugins/codex-deepseek-bridge/dist/runner/index.mjs",
   "plugins/codex-deepseek-bridge/skills/codex-deepseek-bridge/SKILL.md",
 ]) {
   assert(fs.existsSync(path.join(repoRoot, required)), `missing required file: ${required}`);

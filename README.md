@@ -5,24 +5,17 @@
 
 [![Verified live delegation: OpenAI parent to two parallel DeepSeek V4.1 Flash workers](assets/verified-parallel-delegation.svg)](docs/VERIFIED_LIVE_PROOF.md)
 
-> [!NOTE]
-> **Codex 自定义 Provider 的官方追踪 / Official tracking for Codex custom providers**
->
-> - [OpenAI Codex 官方仓库 #29156](https://github.com/openai/codex/issues/29156)：Codex Desktop 尚无安全、完整的第三方 provider 模型选择器；
-> - [OpenAI Codex 官方仓库 #35487](https://github.com/openai/codex/issues/35487)：模型菜单可能把 OpenAI 模型错误写入第三方 provider profile；
-> - [OpenAI Codex 官方仓库 #45839](https://github.com/openai/codex/issues/45839)：社区请求官方提供 provider 管理、GUI 选择与故障切换能力。
-> - [OpenAI Codex 官方仓库 #40858](https://github.com/openai/codex/issues/40858)：近期报告指出 native subagent 的 `model_provider` 覆盖可能没有生效；
-> - [OpenAI Codex 官方仓库 #36387](https://github.com/openai/codex/issues/36387)：Windows 上跨 provider 子任务载荷问题的报告，已作为重复项关闭。
->
-> 本项目围绕这些公开讨论，提供一条可实践、可验证、可卸载的多 provider 并行路径，帮助探索 Codex 的跨模型协作体验。2026-09-22 在本机 Codex CLI 0.155.1 的验收中，原生 custom subagent 虽被创建，但 DeepSeek 请求仍落到 ChatGPT 登录通道并报“不支持该模型”；因此当前不能把官方 provider profile 等同于可用的跨 provider 原生并行调度。随着原生能力逐步完善，也可以平滑回归官方方案。
->
-> 注：这些 issue 位于 OpenAI 官方仓库，其中可包含社区提交的问题报告或功能请求；它们证明问题已经在上游公开记录，但不代表 OpenAI 已承诺具体修复时间。
+> **强模型做难判断，外部 worker 做有界执行。** 本项目让顶层 Codex 通过可见的 MCP 调用，将合适的工程任务交给单独计费的 DeepSeek worker；结果由顶层独立审查、复测和提交。它旨在减少高能力模型承担的重复性工作，让有限的 Codex 使用额度更多留给架构、疑难问题与最终验收；**不保证任何固定的额度节省倍数，也不会改变账户的五小时窗口规则。**
+
+已真实验证：`deepseek/deepseek-flash/high` 的双 worker 同步并行、运行时验真，以及持久化 Job 的提交、重连查询与结果回收。其他 provider/profile 只是架构兼容，未经各自端到端验真不宣称已支持。DeepSeek API 调用由用户自己的账户单独计费。
+
+不做的事：不把 DeepSeek 加进 Codex 原生模型下拉菜单，不自动合并代码，不绕过 worker 沙箱，也不做万能路由器。相关 Codex 原生 provider 讨论见 [OpenAI 官方仓库 #29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487)、[#40858](https://github.com/openai/codex/issues/40858)。
 
 ## 中文介绍
 
 **让顶层模型负责判断，让高性价比模型并行干活。**
 
-Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层模型担任“总指挥”，把边界清楚、可以独立完成的开发任务，并行交给 DeepSeek V4.1 Flash 等高性价比“雇佣兵模型”，再由顶层模型收回结果、整合代码和最终复核。
+Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层模型负责拆解和把关，把边界清楚的工程任务交给 DeepSeek V4.1 Flash worker；短任务可同步并行，长任务可独立后台运行并持久化结果，再由顶层模型收回、复核与集成。
 
 它不把 DeepSeek 伪装成 OpenAI 模型，也不修改 Codex 数据库、认证或内置模型目录。第三方模型目前仍通过独立 profile 与桥接调用协作；可见的 MCP 工具调用、真实并发时间和逐 worker 运行时验真，会记录任务实际由哪个模型完成。相关体验与讨论见 Codex 官方仓库 [#29156](https://github.com/openai/codex/issues/29156)、[#35487](https://github.com/openai/codex/issues/35487) 和 [#45839](https://github.com/openai/codex/issues/45839)。
 
@@ -32,7 +25,7 @@ Codex DeepSeek Bridge 是一个可移除的 Codex 插件。它让 OpenAI 顶层�
 
 **Let the strongest model decide. Let cost-effective models execute in parallel.**
 
-Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent into the lead engineer: it decomposes bounded work, dispatches independent tasks to DeepSeek V4.1 Flash or other configured “mercenary models,” then integrates and reviews their output. It works alongside Codex through visible MCP calls, real overlap, and per-worker runtime attestation. Related custom-provider workflows are being discussed in the official Codex repository: [#29156](https://github.com/openai/codex/issues/29156), [#35487](https://github.com/openai/codex/issues/35487), and [#45839](https://github.com/openai/codex/issues/45839).
+Codex DeepSeek Bridge is a removable Codex plugin. Keep premium Codex models focused on high-value reasoning while independently billed DeepSeek workers handle bounded implementation tasks. Short tasks use synchronous parallel calls; longer tasks use durable background jobs. Every worker is checked against runtime provider/model/reasoning evidence. This can make limited premium usage go further, but it does not change plan limits or promise measured savings.
 
 **Plan once. Execute in parallel. Scale with value. Verify every result.**
 
@@ -43,7 +36,7 @@ Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent in
 | 组成 | 作用 |
 | --- | --- |
 | Codex Plugin | 提供可安装、可升级、可卸载的产品外壳 |
-| Local MCP Server | 暴露 `codex_provider_workers.run_parallel`，创建并控制并行 worker |
+| Local MCP Server | 提供同步 `run_parallel` 与持久化 `submit_jobs` / `get_job_status` / `collect_results` / `cancel_job`；`list_jobs` 可找回 job ID |
 | Routing Skill | 告诉顶层模型何时拆任务、如何限制并发、如何回收结果 |
 | Runtime Attestation | 从每个子任务的实际运行记录核验 provider、模型、推理强度和 CLI 版本 |
 | Tests and Docs | 提供离线测试、真实 API 验收、回滚、故障排查和发布规范 |
@@ -56,7 +49,7 @@ Codex DeepSeek Bridge is a removable Codex plugin that turns an OpenAI parent in
 OpenAI 顶层模型（规划、拆分、最终 Review）
                     │
                     ▼
-     Codex DeepSeek Bridge / run_parallel
+     Codex DeepSeek Bridge / run_parallel 或 submit_jobs
           ┌─────────┼─────────┐
           ▼         ▼         ▼
      DeepSeek A  DeepSeek B  其他 profile
@@ -86,14 +79,14 @@ OpenAI 顶层模型（规划、拆分、最终 Review）
 | ✅ 已真实验证 | DeepSeek direct / `deepseek-flash` | DeepSeek V4.1 Flash；双 worker 端到端并行验收已通过 |
 | 🟡 已预留接入 | OpenRouter profiles | 安装包已转发 `OPENROUTER_API_KEY`；具体模型必须逐个实测并验真 |
 | 🟡 架构兼容 | 其他 Codex custom profiles | 需要可用的 Codex profile、Responses 兼容运行方式及对应密钥变量 |
-| ✅ 支持编队 | 同批混合 profiles | 每个任务可覆盖 profile 和推理强度；每个 provider 都应单独设置预期值 |
+| 🟡 接口支持、未实测组合 | 同批混合 profiles | 每个任务可覆盖 profile 和推理强度；每个 provider 都应单独端到端验真 |
 | ❌ 不宣称 | “所有模型天然可用” | 配置存在不等于可用；只有真实调用和 attestation 通过才算支持 |
 
 项目名称突出 DeepSeek，是因为它是当前的参考配置和已验证主力；执行核心本身是 provider-neutral。接入新 provider 时，只增加它所需的明确环境变量，不把密钥写入仓库，并先做最小真实调用。
 
 ## What works
 
-- One parent can launch 1-8 jobs, with a configurable maximum of 1-4 concurrent workers.
+- One call can launch 1-8 tasks, with 1-4 concurrent workers per call. Background jobs reserve at most four worker slots across active jobs.
 - The default `deepseek` profile can be overridden per batch or per task.
 - Each task can choose its own profile and reasoning effort, enabling mixed-provider batches.
 - Worker execution is bounded by a timeout, output limit, cancellation signal, and `read-only` or `workspace-write` sandbox.
@@ -101,13 +94,27 @@ OpenAI 顶层模型（规划、拆分、最终 Review）
 - Workers can edit and test files, while `.git` may remain read-only inside their sandbox. The parent agent should review the returned work and perform Git staging/commit from the parent task.
 - Results include child thread IDs, provider/model/reasoning attestation, timing, concurrency, truncation state, and errors.
 - Optional expected provider/model/reasoning fields fail the batch closed when runtime attestation differs.
+- The known display alias `DeepSeek V4.1 Flash` canonicalizes to `deepseek-flash`; unknown friendly-name aliases fail closed. Other providers require exact model IDs.
 - Credentials stay in environment variables and are screened from prompts and returned output.
 
-In Codex, the parent task shows a visible `codex_provider_workers.run_parallel` tool call. That tool call is the auditable delegation record.
+In Codex, the parent task shows visible `codex_provider_workers.run_parallel` or `submit_jobs` tool calls. Those calls, followed by status/result collection, are the auditable delegation record.
+
+## 两种执行模式 / Two execution modes
+
+| Mode | Use it for | Lifecycle |
+| --- | --- | --- |
+| `run_parallel` | Short reviews, small edits, focused tests | One blocking call. The parent/tool call may end before a large task finishes; increasing worker timeout alone cannot prevent that. |
+| `submit_jobs` | Feature-sized work that may outlive one MCP call | Returns a `job_id` promptly. A detached local supervisor continues after the MCP server/parent window closes. Query with `get_job_status`, recover IDs with `list_jobs`, read with `collect_results`, or stop with `cancel_job`. |
+
+Job metadata and bounded results live in the current user's `~/.codex-worker-bridge/jobs/<job_id>/` (Windows: `%USERPROFILE%\.codex-worker-bridge\jobs\<job_id>\`). Prompts are held only in a private transient launch file, removed when the supervisor starts. Provider environment variables are not serialized, and known credential values in arguments are rejected; still, never put secrets in prompts. Protect this directory like other local development logs. This is a local single-user facility, not a cloud queue or a power-loss guarantee.
+
+Timeout policies: `short=600s`, `feature=3600s` (default), `extended` requires explicit `timeout_seconds`; every job is capped at `7200s`. `run_parallel` retains its 30–1200s per-worker timeout. A worker timeout is `timed_out`; explicit cancellation is `cancelled`; provider/process/attestation failure is `failed`. An outer MCP/tool timeout is outside the background worker: retrieve the job ID through `list_jobs` and inspect it instead of assuming the worker stopped. A failed or cancelled `workspace-write` task may have left partial file edits; inspect the workspace before retrying.
+
+For longer work, ask the parent to submit bounded tasks, then poll status and collect results. Do not block one tool call for the whole feature. The parent should review and rerun tests before committing.
 
 ## 与 Codex 原生体验协作 / Working alongside native Codex
 
-The bridge keeps external-provider workers in explicit Codex profiles and routes them through visible MCP calls instead of changing the native picker. OpenAI's official Codex repository contains active discussions about provider-aware Desktop selection in [#29156](https://github.com/openai/codex/issues/29156), provider/model pairing in [#35487](https://github.com/openai/codex/issues/35487), and broader provider management in [#45839](https://github.com/openai/codex/issues/45839).
+The bridge keeps external-provider workers in explicit Codex profiles and routes them through visible MCP calls instead of changing the native picker. OpenAI's official Codex repository contains discussions about provider-aware Desktop selection in [#29156](https://github.com/openai/codex/issues/29156), provider/model pairing in [#35487](https://github.com/openai/codex/issues/35487), native subagent provider override in [#40858](https://github.com/openai/codex/issues/40858), and broader provider management in [#45839](https://github.com/openai/codex/issues/45839). These are upstream repository reports/discussions, not a promised fix schedule.
 
 This project complements that work with an immediately usable, reversible path. It avoids database edits, traffic interception, fake authentication, and catalog replacement, and can be removed cleanly as native provider support expands.
 
@@ -170,6 +177,8 @@ The parent normally supplies:
 
 For DeepSeek V4.1 Flash, `high` is the recommended default for ordinary parallel workers; reserve `max` for clearly hard debugging, architecture, or final critical review. For mixed providers, put `profile` and optionally `reasoning_effort` on each task. The parent remains responsible for conflict-free task boundaries, integration, and final verification.
 
+For a feature-sized task, ask: “Use `submit_jobs` with `timeout_policy=feature`, `reasoning_effort=high`, and expected `deepseek/deepseek-flash/high`; return the job ID, check status later, collect the result, then independently review and test before committing.” The default feature budget is one hour; use `extended` only with an explicit bounded timeout.
+
 ## Testing and review
 
 ```powershell
@@ -183,6 +192,7 @@ npm run test:e2e
 
 ## Documentation
 
+- [Real SnakeBattle case study and evidence boundary](docs/SNAKEBATTLE_CASE_STUDY.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [Provider setup](docs/PROVIDER_SETUP.md)
 - [Testing and release gates](docs/TESTING.md)

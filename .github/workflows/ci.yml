@@ -35,8 +35,10 @@ jobs:
         run: npm run test:server
       - name: Build distributable MCP server
         run: npm run build
+      - name: Test bundled long-running job lifecycle
+        run: npm run test:built
       - name: Validate plugin manifests and repository hygiene
         run: npm run validate
       - run: npm audit --omit=dev --audit-level=high
       - name: Check committed bundle is current
-        run: git diff --exit-code -- dist/index.mjs
+        run: git diff --exit-code -- dist/index.mjs dist/runner/index.mjs

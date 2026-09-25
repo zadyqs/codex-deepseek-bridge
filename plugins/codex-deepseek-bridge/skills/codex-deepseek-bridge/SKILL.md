@@ -5,7 +5,7 @@ description: Delegate independent Codex engineering tasks in parallel to DeepSee
 
 # Codex DeepSeek Bridge
 
-Use the `codex_provider_workers.run_parallel` MCP tool when two or more bounded tasks can run independently, or when the user explicitly requests a DeepSeek/custom-provider worker.
+Use `codex_provider_workers.run_parallel` for bounded short tasks. For feature-sized work likely to exceed the outer MCP/tool-call window, use `submit_jobs`, then `get_job_status` and `collect_results`; `list_jobs` recovers an ID after an interrupted parent call, and `cancel_job` explicitly stops a job. Do not keep one synchronous call open for a long feature or assume that increasing `timeout_seconds` changes the parent tool limit.
 
 - Default to profile `deepseek` unless the user names another configured profile.
 - For DeepSeek V4.1 Flash, default ordinary parallel workers to `high` reasoning effort. Reserve `max` for clearly hard debugging, architecture, or final critical-review tasks, and always attest the requested effort.
@@ -19,6 +19,9 @@ Use the `codex_provider_workers.run_parallel` MCP tool when two or more bounded 
 - Treat `results[].attestation` as the model/provider evidence. Do not claim a worker used the requested provider merely because a profile name was supplied.
 - For acceptance tests or provider-specific requests, set `expected_provider`, `expected_model`, and `expected_reasoning_effort` so mismatches fail closed.
 - Tell the user when any worker failed, timed out, or could not be attested.
+- The expected DeepSeek model may be the canonical `deepseek-flash` or the recognized display alias `DeepSeek V4.1 Flash`. Never invent other aliases; unknown names fail closed.
+- Long jobs have bounded `short` (600s), `feature` (3600s), and explicit `extended` (up to 7200s) policies. Poll without blocking the parent for the full duration. Distinguish `timed_out`, `cancelled`, provider failure, process failure, and partial workspace changes.
+- Never treat a background job's `running` status as success. Collect the final result, inspect runtime attestation, independently rerun relevant checks, and only then let the parent stage/commit.
 - Do not use this bridge to bypass provider terms, account access, model entitlements, or Codex safety controls.
 
 The tool call itself is the visible record inside the Codex task. It does not add third-party models to the desktop model picker.

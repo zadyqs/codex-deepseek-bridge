@@ -1,18 +1,20 @@
 {
   "name": "codex-deepseek-bridge",
-  "version": "0.1.0+codex.20260922231453",
+  "version": "0.1.0+codex.20260925014924",
   "description": "Codex plugin and MCP bridge for verified parallel provider workers",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "ncc build mcp/server.mjs -o dist -m",
-    "check": "node --check mcp/core.mjs && node --check mcp/server.mjs",
+    "build": "ncc build mcp/server.mjs -o dist -m && ncc build mcp/job-runner.mjs -o dist/runner -m",
+    "check": "node --check mcp/core.mjs && node --check mcp/jobs.mjs && node --check mcp/job-runner.mjs && node --check mcp/server.mjs",
     "test": "npm run test:core && npm run test:server",
-    "test:core": "node --test test/core.test.mjs",
+    "test:core": "node --test test/core.test.mjs test/jobs.test.mjs",
     "test:server": "node --test test/server.test.mjs",
+    "test:built": "node --test test/built.test.mjs",
     "validate": "node scripts/validate.mjs",
-    "verify": "npm run check && npm test && npm run build && npm run validate",
-    "test:e2e": "node test/e2e.mjs"
+    "verify": "npm run check && npm test && npm run build && npm run test:built && npm run validate",
+    "test:e2e": "node test/e2e.mjs",
+    "test:e2e-job": "node test/e2e-job.mjs"
   },
   "engines": {
     "node": ">=20"

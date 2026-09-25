@@ -60,3 +60,9 @@ For a release-grade check, require two exact output markers and reject the run u
 - This proves the bridge performed a real, concurrent DeepSeek V4.1 Flash delegation through the configured Codex provider profile.
 - It does not claim that DeepSeek appears in Codex Desktop's native model picker. That upstream UI gap is tracked by OpenAI in [#29156](https://github.com/openai/codex/issues/29156), [#35487](https://github.com/openai/codex/issues/35487), and [#45839](https://github.com/openai/codex/issues/45839).
 - The public evidence is intentionally sanitized. Maintainers should keep raw local rollout logs private because they may contain workspace or account context.
+
+## Durable-job acceptance / 持久化任务验收
+
+On 2026-09-24 local time (2026-09-25 UTC), a separate live check used the packaged `submit_jobs` tool with a real `deepseek` profile, closed the original MCP client, opened a new MCP client, polled status, and collected the final result. The job finished `succeeded` in about 17 seconds. Its child rollout attested `provider=deepseek`, `model=deepseek-flash`, `reasoningEffort=high`, and Codex CLI `0.155.1`; `expectationsMet=true`. The returned marker was `BRIDGE_LIVE_JOB_OK`. A separate synchronous acceptance on the same code returned 2/2 successful DeepSeek workers, `peakConcurrency=2`, and `overlapMs=13324`.
+
+This verifies live background-job lifecycle and real provider usage across an MCP reconnect. It does **not** constitute a 300-second endurance measurement. The [SnakeBattle case study](SNAKEBATTLE_CASE_STUDY.md) records why longer-running work is needed and what happened in the real project.

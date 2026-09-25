@@ -3,4 +3,6 @@ node_modules/
 .env
 .env.*
 coverage/
+.test-jobs-*/
+plugins/codex-deepseek-bridge/.test-jobs-*/
 .DS_Store

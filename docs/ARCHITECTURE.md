@@ -11,6 +11,10 @@
 7. Optional provider/model/reasoning expectations are compared with runtime attestation and fail closed on mismatch.
 8. Redacted structured results return to the parent for integration and final verification.
 
+For long tasks, `submit_jobs` writes a private local job record and a transient launch payload, starts a detached Node supervisor, and returns a job ID without waiting. The supervisor deletes the launch payload, starts bounded Codex workers, and atomically replaces the job record as tasks progress. The MCP server can restart while the supervisor continues; `get_job_status` and `collect_results` load persisted records. `cancel_job` writes a cancellation request, which the supervisor converts to worker process-tree termination. `list_jobs` offers bounded recovery when a parent loses its job ID.
+
+The bridge is not a distributed scheduler. At most four background worker slots may be reserved across active jobs. A machine power loss or supervisor crash can leave partial workspace edits; the next status read marks a missing supervisor as failed, not as never executed.
+
 ## Trust boundaries
 
 - The plugin receives only environment variables explicitly named in `.mcp.json`.
@@ -20,6 +24,7 @@
 - Workers run with either `read-only` or `workspace-write`; the bridge never exposes a danger-full-access option.
 - Output capture, returned result length, worker count, concurrency, and runtime are bounded.
 - Cancellation terminates the child process tree.
+- The background launch file is private and removed immediately after supervisor startup; durable job metadata omits raw prompts and credentials. Progress stores bounded event types, not raw rollout logs.
 
 ## Non-goals
 

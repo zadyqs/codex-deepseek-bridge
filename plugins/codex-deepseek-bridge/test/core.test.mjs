@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import test from "node:test";
 import {
+  canonicalModelId,
   enforceAttestation,
   parseCodexOutput,
   redactSecrets,
@@ -10,6 +12,17 @@ import {
   validateProfileName,
   validateTasks,
 } from "../mcp/core.mjs";
+
+test("canonical model aliases are explicit and unknown labels fail closed", () => {
+  assert.equal(canonicalModelId("DeepSeek V4.1 Flash"), "deepseek-flash");
+  assert.equal(canonicalModelId("deepseek-flash"), "deepseek-flash");
+  assert.equal(canonicalModelId("Unknown Friendly Name"), null);
+  const base = { ok: true, attestation: { verified: true, provider: "deepseek", model: "deepseek-flash", reasoningEffort: "high" } };
+  assert.equal(enforceAttestation(base, { provider: "deepseek", model: "DeepSeek V4.1 Flash", reasoningEffort: "high" }).ok, true);
+  assert.equal(enforceAttestation(base, { provider: "other" }).ok, false);
+  assert.equal(enforceAttestation(base, { reasoningEffort: "max" }).ok, false);
+  assert.equal(enforceAttestation(base, { model: "Unknown Friendly Name" }).ok, false);
+});
 
 test("workspace paths inside a Git project resolve to the repository root", async (t) => {
   const fs = await import("node:fs");
@@ -22,7 +35,7 @@ test("workspace paths inside a Git project resolve to the repository root", asyn
   fs.mkdirSync(nested, { recursive: true });
   const initialized = spawnSync("git", ["-C", root, "init", "--quiet"], { encoding: "utf8" });
   assert.equal(initialized.status, 0, initialized.stderr);
-  assert.equal(resolveWorkspaceCwd(nested), root);
+  assert.equal(fs.realpathSync.native(resolveWorkspaceCwd(nested)), fs.realpathSync.native(root));
 });
 
 test("non-Git workspaces keep the requested directory as their write root", async (t) => {
@@ -36,7 +49,7 @@ test("non-Git workspaces keep the requested directory as their write root", asyn
 
 test("workspace path validation fails clearly", () => {
   assert.throws(() => resolveWorkspaceCwd("relative/path"), /absolute path/);
-  assert.throws(() => resolveWorkspaceCwd("C:/this/path/does/not/exist"), /existing directory/);
+  assert.throws(() => resolveWorkspaceCwd(path.join(process.cwd(), "this-path-does-not-exist-bridge-test")), /existing directory/);
 });
 
 test("parseCodexOutput extracts the child thread and final answer", () => {

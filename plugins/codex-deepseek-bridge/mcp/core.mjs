@@ -9,6 +9,18 @@ export const MAX_CAPTURED_CHARS = 8 * 1024 * 1024;
 export const DEFAULT_RESULT_MAX_CHARS = 40000;
 export const REASONING_EFFORTS = new Set(["profile", "low", "medium", "high", "xhigh", "max"]);
 
+const MODEL_ALIASES = new Map([
+  ["deepseek-flash", "deepseek-flash"],
+  ["deepseek v4.1 flash", "deepseek-flash"],
+]);
+
+export function canonicalModelId(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
+  if (MODEL_ALIASES.has(normalized)) return MODEL_ALIASES.get(normalized);
+  return /^[a-z0-9][a-z0-9._:/-]*$/i.test(value) ? value : null;
+}
+
 export function validateProfileName(profile) {
   if (!/^[A-Za-z0-9._-]{1,64}$/.test(profile)) {
     throw new Error("profile must contain only letters, digits, dots, underscores, or hyphens.");
@@ -96,6 +108,10 @@ export async function runTaskPool(tasks, maxConcurrency, runner) {
 }
 
 export function enforceAttestation(result, expected = {}) {
+  const attestation = result.attestation?.verified
+    ? { ...result.attestation, canonicalModel: canonicalModelId(result.attestation.model) }
+    : result.attestation;
+  result = { ...result, attestation };
   const checks = [
     ["provider", expected.provider, result.attestation?.provider],
     ["model", expected.model, result.attestation?.model],
@@ -104,7 +120,9 @@ export function enforceAttestation(result, expected = {}) {
   if (checks.length === 0) return { ...result, expectationsMet: null };
 
   const mismatches = checks
-    .filter(([, wanted, actual]) => wanted !== actual)
+    .filter(([label, wanted, actual]) => label === "model"
+      ? !canonicalModelId(wanted) || canonicalModelId(wanted) !== canonicalModelId(actual)
+      : wanted !== actual)
     .map(([label, wanted, actual]) => `${label}: expected ${wanted}, got ${actual ?? "unverified"}`);
   if (mismatches.length === 0) return { ...result, expectationsMet: true };
 
@@ -128,7 +146,7 @@ function sensitiveEnvironmentValues(env = process.env) {
 export function rejectCredentialMaterial(tasks, env = process.env) {
   const secrets = sensitiveEnvironmentValues(env);
   for (const task of tasks) {
-    if (secrets.some((secret) => task.prompt.includes(secret))) {
+    if (/\bsk-[A-Za-z0-9_-]{8,}\b/.test(task.prompt) || secrets.some((secret) => task.prompt.includes(secret))) {
       throw new Error(`task ${task.id} prompt contains credential material from the environment.`);
     }
   }
@@ -258,7 +276,7 @@ function readRolloutAttestation(file) {
     }
     if (result.provider && result.model && result.reasoningEffort) break;
   }
-  result.verified = Boolean(result.provider && result.model);
+  result.verified = Boolean(result.provider && result.model && result.reasoningEffort && result.cliVersion);
   return result;
 }
 
@@ -285,7 +303,7 @@ function stopProcessTree(child) {
     });
     return;
   }
-  child.kill("SIGKILL");
+  try { process.kill(-child.pid, "SIGKILL"); } catch { child.kill("SIGKILL"); }
 }
 
 export function runWorker({
@@ -297,6 +315,8 @@ export function runWorker({
   sandbox = "workspace-write",
   resultMaxChars = DEFAULT_RESULT_MAX_CHARS,
   signal,
+  onStarted,
+  onProgress,
 }) {
   return new Promise((resolve) => {
     const startedAt = new Date();
@@ -310,6 +330,8 @@ export function runWorker({
         durationMs: 0,
         error: "Worker cancelled before launch.",
         cancelled: true,
+        failureCause: "cancelled",
+        retries: 0,
         attestation: { verified: false, reason: "worker was cancelled" },
       });
       return;
@@ -347,8 +369,10 @@ export function runWorker({
       cwd,
       env: process.env,
       windowsHide: true,
+      detached: process.platform !== "win32",
       stdio: ["ignore", "pipe", "pipe"],
     });
+    try { onStarted?.(child.pid ?? null); } catch { /* A status write must not abandon an untracked child. */ }
 
     let stdout = "";
     let stderr = "";
@@ -356,6 +380,27 @@ export function runWorker({
     let oversized = false;
     let cancelled = false;
     let settled = false;
+    let pendingLine = "";
+
+    const noteProgress = (chunk) => {
+      pendingLine += chunk.toString("utf8");
+      if (pendingLine.length > 65536) pendingLine = pendingLine.slice(-65536);
+      const lines = pendingLine.split(/\r?\n/);
+      pendingLine = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("{")) continue;
+        try {
+          const event = JSON.parse(line);
+          if (event.type === "thread.started") {
+            try { onProgress?.({ type: "thread.started", threadId: event.thread_id ?? null }); } catch { /* Keep the worker supervised. */ }
+          }
+          else if (["item.started", "item.completed", "turn.completed", "error"].includes(event.type)) {
+            const itemType = ["agent_message", "command_execution", "error"].includes(event.item?.type) ? event.item.type : null;
+            try { onProgress?.({ type: event.type, itemType }); } catch { /* Keep the worker supervised. */ }
+          }
+        } catch { /* Only structured event types are persisted, never raw output. */ }
+      }
+    };
 
     const append = (current, chunk) => {
       const next = current + chunk.toString("utf8");
@@ -364,7 +409,7 @@ export function runWorker({
       stopProcessTree(child);
       return next.slice(-MAX_CAPTURED_CHARS);
     };
-    child.stdout.on("data", (chunk) => { stdout = append(stdout, chunk); });
+    child.stdout.on("data", (chunk) => { stdout = append(stdout, chunk); noteProgress(chunk); });
     child.stderr.on("data", (chunk) => { stderr = append(stderr, chunk); });
 
     const timer = setTimeout(() => {
@@ -389,6 +434,8 @@ export function runWorker({
         startedAt: startedAt.toISOString(),
         endedAt: new Date().toISOString(),
         error: error.message,
+        failureCause: "process_failure",
+        retries: 0,
         attestation: { verified: false, reason: "worker process failed to start" },
       });
     });
@@ -404,7 +451,7 @@ export function runWorker({
       const redactedResult = redactSecrets(parsed.finalText);
       const resultTruncated = typeof redactedResult === "string" && redactedResult.length > resultMaxChars;
       const result = resultTruncated ? redactedResult.slice(0, resultMaxChars) : redactedResult;
-      const ok = exitCode === 0 && Boolean(parsed.finalText) && !timedOut && !oversized && !cancelled && attestation.verified;
+      const ok = exitCode === 0 && Boolean(parsed.finalText) && !parsed.reportedError && !timedOut && !oversized && !cancelled && attestation.verified;
       resolve({
         id: task.id,
         ok,
@@ -416,6 +463,10 @@ export function runWorker({
         result,
         resultTruncated,
         cancelled,
+        workerPid: child.pid ?? null,
+        retries: 0,
+        outputSizeChars: stdout.length + stderr.length,
+        failureCause: cancelled ? "cancelled" : timedOut ? "worker_timeout" : oversized ? "output_limit" : parsed.reportedError ? "provider_failure" : exitCode !== 0 ? "process_failure" : !attestation.verified ? "attestation_failure" : !parsed.finalText ? "missing_result" : null,
         error: cancelled
           ? "Worker was cancelled by the caller."
           : timedOut
